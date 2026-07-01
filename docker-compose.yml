@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  api:
+    build: ./api
+    container_name: dujia-tiku-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DB_PATH=/app/data/du-tiku.db
+      - JWT_SECRET=${JWT_SECRET:-dujia-tiku-v1-local}
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - dujia-tiku-net
+
+  nginx:
+    image: nginx:alpine
+    container_name: dujia-tiku-nginx
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-18080}:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./web:/usr/share/nginx/html:ro
+    depends_on:
+      - api
+    networks:
+      - dujia-tiku-net
+
+networks:
+  dujia-tiku-net:
+    driver: bridge
