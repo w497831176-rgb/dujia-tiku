@@ -1,89 +1,1373 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>独家题库 - V1.0</title>
-  <style>
-    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-    body{margin:0;background:#f0f4f8;color:#1e293b;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-    button,input{font:inherit}.shell{max-width:480px;min-height:100vh;margin:auto;background:#f8fafc;box-shadow:0 0 20px rgba(0,0,0,.08);position:relative;padding-bottom:76px}
-    .header{padding:20px 18px 14px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff}.header h1{font-size:20px;margin:0}.header p{font-size:13px;opacity:.85;margin:5px 0 0}
-    .card{margin:14px 16px;padding:16px;background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
-    .login{padding:54px 16px}.brand{text-align:center;margin-bottom:28px}.brand .icon{font-size:54px}.brand h1{margin:8px 0 4px;color:#2563eb}.muted{color:#94a3b8;font-size:13px}
-    .input{width:100%;padding:13px 14px;margin-bottom:12px;border:1.5px solid #e2e8f0;border-radius:11px;outline:none}.input:focus{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.1)}
-    .primary{width:100%;padding:13px;border:0;border-radius:11px;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;font-weight:700}.link{color:#2563eb;cursor:pointer}.center{text-align:center}
-    .progress{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:12px}.progress>i{display:block;height:100%;background:#3b82f6;transition:width .3s}
-    .type{display:inline-block;padding:3px 8px;border-radius:6px;background:#dbeafe;color:#1d4ed8;font-size:12px;font-weight:700}.qno{font-size:13px;color:#94a3b8;margin-left:8px}
-    .stem{font-size:16px;line-height:1.7;font-weight:600;margin:14px 0}.option{width:100%;padding:12px 14px;margin:0 0 10px;text-align:left;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px}.option.correct{background:#f0fdf4;border-color:#22c55e}.option.wrong{background:#fef2f2;border-color:#ef4444}.option:disabled{color:#334155}
-    .analysis{margin-top:14px;padding:14px;border-left:3px solid #3b82f6;border-radius:8px;background:#eff6ff;font-size:14px;line-height:1.7}.answer{color:#15803d;font-weight:700;margin-bottom:6px}
-    .actions{display:flex;gap:12px;margin:14px 16px}.actions button{flex:1;padding:11px;border-radius:10px;border:1px solid #e2e8f0;background:#fff}.actions .next{background:#2563eb;color:#fff;border-color:#2563eb}.actions button:disabled{opacity:.4}
-    .tabs{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:62px;background:#fff;border-top:1px solid #e5e7eb;display:flex}.tab{flex:1;border:0;background:none;color:#94a3b8}.tab.active{color:#2563eb;font-weight:700}
-    .page{display:none}.page.active{display:block}.wrong-row{padding:13px 0;border-bottom:1px solid #f1f5f9}.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center}.stat b{display:block;font-size:22px;color:#2563eb}.empty{text-align:center;color:#94a3b8;padding:36px 10px}.toast{position:fixed;left:50%;top:48%;transform:translate(-50%,-50%);background:rgba(15,23,42,.9);color:#fff;padding:10px 16px;border-radius:8px;z-index:20}
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>独家题库 - 刷题利器</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: { 50:'#eff6ff',100:'#dbeafe',200:'#bfdbfe',300:'#93c5fd',400:'#60a5fa',500:'#3b82f6',600:'#2563eb',700:'#1d4ed8',800:'#1e40af',900:'#1e3a8a' },
+                        accent: { 50:'#fff7ed',100:'#ffedd5',200:'#fed7aa',300:'#fdba74',400:'#fb923c',500:'#f97316',600:'#ea580c',700:'#c2410c',800:'#9a3412',900:'#7c2d12' },
+                        warm: { 50:'#fefce8',100:'#fef9c3',200:'#fef08a',300:'#fde047',400:'#facc15',500:'#eab308' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
+        .page-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #f8fafc; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
+        .tab-page { display: none; padding-bottom: 160px; }
+        .tab-page.active { display: block; }
+        .bottom-tab-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: white; border-top: 1px solid #e5e7eb; display: flex; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
+        .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 0 8px; cursor: pointer; transition: all 0.2s; color: #94a3b8; -webkit-tap-highlight-color: transparent; }
+        .tab-item.active { color: #2563eb; }
+        .tab-item .tab-icon { width: 24px; height: 24px; line-height: 1; }
+        .tab-item .tab-icon svg { width: 24px; height: 24px; }
+        .tab-item .tab-label { font-size: 11px; margin-top: 3px; line-height: 1; }
+        .card { background: white; border-radius: 12px; margin: 12px 16px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        .option-btn { width: 100%; text-align: left; padding: 12px 16px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: white; margin-bottom: 10px; font-size: 15px; cursor: pointer; transition: all 0.2s; line-height: 1.5; }
+        .option-btn:hover { border-color: #93c5fd; background: #eff6ff; }
+        .option-btn:active { transform: scale(0.98); }
+        .option-btn.correct { border-color: #22c55e; background: #f0fdf4; animation: flashGreen 0.5s; }
+        .option-btn.wrong { border-color: #ef4444; background: #fef2f2; animation: flashRed 0.5s; }
+        .option-btn.disabled { pointer-events: none; opacity: 0.7; }
+        .option-btn.show-correct { border-color: #22c55e; background: #f0fdf4; }
+        @keyframes flashGreen { 0%,100%{background:#f0fdf4} 25%{background:#bbf7d0} 50%{background:#f0fdf4} 75%{background:#bbf7d0} }
+        @keyframes flashRed { 0%,100%{background:#fef2f2} 25%{background:#fecaca} 50%{background:#fef2f2} 75%{background:#fecaca} }
+        .progress-bar { height: 6px; background: #e2e8f0; border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 3px; transition: width 0.4s ease; }
+        .analysis-section { margin-top: 12px; padding: 14px; border-radius: 10px; font-size: 14px; line-height: 1.7; }
+        .analysis-section.correct-answer { background: #f0fdf4; border-left: 3px solid #22c55e; }
+        .analysis-section.thinking { background: #eff6ff; border-left: 3px solid #3b82f6; }
+        .analysis-section.wrong-analysis { background: #fff7ed; border-left: 3px solid #f97316; }
+        .analysis-section.knowledge { background: #fefce8; border-left: 3px solid #eab308; }
+        .variant-section { margin-top: 16px; border-top: 1px dashed #e2e8f0; padding-top: 14px; }
+        .variant-option-btn { width: 100%; text-align: left; padding: 10px 14px; border-radius: 8px; border: 1.5px solid #e2e8f0; background: white; margin-bottom: 8px; font-size: 14px; cursor: pointer; transition: all 0.2s; }
+        .variant-option-btn.correct { border-color: #22c55e; background: #f0fdf4; }
+        .variant-option-btn.wrong { border-color: #ef4444; background: #fef2f2; }
+        .float-btn-bar { position: fixed; bottom: 60px; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 10px 16px; background: linear-gradient(transparent, rgba(248,250,252,0.95) 30%); z-index: 50; }
+        .nav-btn { padding: 10px 24px; border-radius: 10px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; }
+        .nav-btn:active { transform: scale(0.96); }
+        .nav-btn.primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; box-shadow: 0 2px 8px rgba(37,99,235,0.3); }
+        .nav-btn.secondary { background: white; color: #64748b; border: 1px solid #e2e8f0; }
+        .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .pay-btn { width: 100%; padding: 14px; border-radius: 12px; font-size: 16px; font-weight: 700; cursor: pointer; border: none; background: linear-gradient(135deg, #f97316, #ea580c); color: white; box-shadow: 0 4px 12px rgba(249,115,22,0.3); transition: all 0.2s; }
+        .pay-btn:active { transform: scale(0.97); }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-blue { background: #dbeafe; color: #1d4ed8; }
+        .badge-orange { background: #ffedd5; color: #c2410c; }
+        .badge-green { background: #dcfce7; color: #15803d; }
+        .wrong-item { display: flex; align-items: center; justify-content: space-between; padding: 14px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .wrong-item:active { background: #f8fafc; }
+        .wrong-item:last-child { border-bottom: none; }
+        .wrong-count { min-width: 28px; height: 28px; border-radius: 14px; background: #fef2f2; color: #ef4444; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+        .sub-tab-bar { display: flex; background: #f1f5f9; border-radius: 10px; margin: 12px 16px; padding: 3px; }
+        .sub-tab { flex: 1; text-align: center; padding: 8px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; color: #64748b; }
+        .sub-tab.active { background: white; color: #2563eb; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+        .login-input { width: 100%; padding: 14px 16px; border: 1.5px solid #e2e8f0; border-radius: 12px; font-size: 16px; outline: none; transition: border-color 0.2s; background: white; }
+        .login-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+        .fade-in { animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        .slide-up { animation: slideUp 0.3s ease; }
+        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+        .report-card { background: white; border-radius: 12px; margin: 10px 16px; padding: 14px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); cursor: pointer; transition: all 0.2s; }
+        .report-card:active { transform: scale(0.98); }
+        .stat-card { background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; border-radius: 16px; margin: 12px 16px; padding: 20px; }
+        .stat-card .stat-num { font-size: 32px; font-weight: 800; }
+        .stat-card .stat-label { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+        .profile-item { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.2s; }
+        .profile-item:active { background: #f8fafc; }
+        .profile-item:last-child { border-bottom: none; }
+        .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
+        .modal-box { background: white; border-radius: 16px; width: 90%; max-width: 400px; padding: 24px; animation: slideUp 0.3s ease; }
+        .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 12px 24px; border-radius: 10px; z-index: 300; font-size: 14px; animation: fadeIn 0.2s; pointer-events: none; }
+        .markdown-body { word-wrap: break-word; overflow-wrap: break-word; }
+        .markdown-body h1,.markdown-body h2,.markdown-body h3 { font-weight:700; margin:16px 0 8px; }
+        .markdown-body h1{font-size:20px} .markdown-body h2{font-size:18px} .markdown-body h3{font-size:16px}
+        .markdown-body p{margin:8px 0;line-height:1.7} .markdown-body ul,.markdown-body ol{padding-left:20px;margin:8px 0}
+        .markdown-body li{margin:4px 0;line-height:1.6} .markdown-body strong{color:#1e40af}
+        .markdown-body code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px;word-break:break-word}
+        .markdown-body pre{background:#f8fafc;padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+        .markdown-body blockquote{border-left:3px solid #3b82f6;padding-left:12px;color:#64748b;margin:8px 0}
+        .markdown-body table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;table-layout:fixed}
+        .markdown-body thead{background:#eff6ff}
+        .markdown-body th{padding:10px 8px;border:1px solid #e2e8f0;text-align:left;font-weight:600;color:#1e40af;font-size:13px;word-break:break-word}
+        .markdown-body td{padding:8px;border:1px solid #e2e8f0;line-height:1.6;word-break:break-word;overflow-wrap:break-word;vertical-align:top}
+        .markdown-body tr:nth-child(even){background:#f8fafc}
+        .markdown-body hr{border:none;border-top:1px solid #e2e8f0;margin:20px 0}
+        .type-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+    </style>
 </head>
 <body>
-<div class="shell">
-  <section id="loginPage" class="login">
-    <div class="brand"><div class="icon">📚</div><h1>独家题库</h1><div class="muted">基础刷题系统 V1.0</div></div>
-    <div class="card" id="loginForm">
-      <input id="loginUsername" class="input" placeholder="请输入用户名">
-      <input id="loginPassword" class="input" type="password" placeholder="请输入密码">
-      <button class="primary" onclick="login()">登录</button>
-      <p class="center muted">没有账号？<span class="link" onclick="showRegister()">立即注册</span></p>
+
+<div class="page-container" id="app">
+    <!-- Login Page -->
+    <div id="loginPage" style="display:none;">
+        <div style="padding:40px 24px 24px;text-align:center;">
+            <div style="font-size:40px;margin-bottom:8px;">&#x1F4DA;</div>
+            <h1 style="font-size:28px;font-weight:800;color:#1e293b;margin:0 0 4px;">独家题库</h1>
+            <p style="color:#94a3b8;font-size:14px;margin:0 0 32px;">50万字4000题，AI定制精华速通</p>
+        </div>
+        <div id="loginForm" class="card" style="margin-top:0;">
+            <div style="margin-bottom:14px;">
+                <input type="text" id="loginUsername" class="login-input" placeholder="请输入用户名" autocomplete="username">
+            </div>
+            <div style="margin-bottom:14px;">
+                <input type="password" id="loginPassword" class="login-input" placeholder="请输入密码" autocomplete="current-password">
+            </div>
+            <button onclick="handleLogin()" style="width:100%;padding:14px;border-radius:12px;font-size:16px;font-weight:700;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(37,99,235,0.3);">登 录</button>
+            <p style="text-align:center;margin-top:16px;font-size:14px;color:#64748b;">
+                还没有账号？<a href="javascript:void(0)" onclick="showRegister()" style="color:#2563eb;font-weight:600;">立即注册</a>
+            </p>
+        </div>
+        <div id="registerForm" class="card" style="display:none;margin-top:0;">
+            <div style="margin-bottom:14px;">
+                <input type="text" id="regUsername" class="login-input" placeholder="设置用户名">
+            </div>
+            <div style="margin-bottom:14px;">
+                <input type="password" id="regPassword" class="login-input" placeholder="设置密码">
+            </div>
+            <div style="margin-bottom:14px;">
+                <input type="password" id="regPassword2" class="login-input" placeholder="确认密码">
+            </div>
+            <div style="margin-bottom:14px;">
+                <input type="text" id="regInviteCode" class="login-input" placeholder="邀请码（选填）">
+            </div>
+            <button onclick="handleRegister()" style="width:100%;padding:14px;border-radius:12px;font-size:16px;font-weight:700;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:white;cursor:pointer;box-shadow:0 4px 12px rgba(249,115,22,0.3);">注 册</button>
+            <p style="text-align:center;margin-top:16px;font-size:14px;color:#64748b;">
+                已有账号？<a href="javascript:void(0)" onclick="showLogin()" style="color:#2563eb;font-weight:600;">去登录</a>
+            </p>
+        </div>
     </div>
-    <div class="card" id="registerForm" style="display:none">
-      <input id="regUsername" class="input" placeholder="请输入用户名">
-      <input id="regPassword" class="input" type="password" placeholder="请输入密码">
-      <input id="regPassword2" class="input" type="password" placeholder="请再次输入密码">
-      <button class="primary" onclick="register()">注册</button>
-      <p class="center muted">已有账号？<span class="link" onclick="showLogin()">去登录</span></p>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display:none;">
+        <!-- Tab: Question Bank -->
+        <div id="pageQuestions" class="tab-page active">
+            <div style="padding:16px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                    <div style="font-size:18px;font-weight:700;">题库刷题</div>
+                    <button onclick="resetAllAnswers()" style="padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;border:1px solid rgba(255,255,255,0.4);background:rgba(255,255,255,0.15);color:white;cursor:pointer;">全部重置</button>
+                </div>
+                <div class="progress-bar" style="background:rgba(255,255,255,0.2);">
+                    <div class="progress-fill" id="progressFill" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);width:0%;"></div>
+                </div>
+                <div style="font-size:13px;opacity:0.8;margin-top:6px;" id="progressText">0 / 0</div>
+            </div>
+            <div id="questionCard" class="card fade-in" style="margin-top:12px;">
+                <!-- Question content rendered by JS -->
+            </div>
+            <div class="float-btn-bar">
+                <div style="display:flex;gap:12px;">
+                    <button class="nav-btn secondary" id="prevBtn" onclick="prevQuestion()" disabled>上一题</button>
+                    <button class="nav-btn primary" id="nextBtn" onclick="nextQuestion()" style="flex:1;">下一题</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab: Wrong Questions -->
+        <div id="pageWrong" class="tab-page">
+            <div style="padding:16px;background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
+                <div style="font-size:18px;font-weight:700;">错题集</div>
+                <div style="font-size:13px;opacity:0.8;margin-top:4px;" id="wrongCountText">0 道错题</div>
+            </div>
+            <div id="wrongList"></div>
+            <div id="wrongPayOverlay" style="display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 16px 72px;background:linear-gradient(transparent,rgba(248,250,252,0.95) 30%);z-index:50;">
+                <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 -2px 10px rgba(0,0,0,0.08);">
+                    <div style="font-size:13px;color:#64748b;margin-bottom:8px;">查看更多错题需要解锁</div>
+                    <div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>
+                    <div style="text-align:center;margin-top:6px;"><a href="javascript:void(0)" onclick="switchTab('pageProfile');showInviteModal()" style="font-size:13px;color:#2563eb;text-decoration:underline;cursor:pointer;">去邀请好友 &rarr;</a></div>
+                    <button class="pay-btn" onclick="purchaseWrongCollection()" style="margin-top:12px;">&#x1F512; 付费解锁全部错题 - &yen;2.9</button>
+                </div>
+            </div>
+            <!-- Wrong Detail -->
+            <div id="wrongDetailPage" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:#f8fafc;z-index:60;overflow-y:auto;">
+                <div style="padding:12px 16px;background:white;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;">
+                    <button onclick="closeWrongDetail()" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回</button>
+                    <span style="margin-left:12px;font-size:16px;font-weight:600;">错题详情</span>
+                </div>
+                <div id="wrongDetailContent" style="padding-bottom:20px;"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Extract -->
+        <div id="pageExtract" class="tab-page">
+            <div style="padding:16px;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;">
+                <div style="font-size:18px;font-weight:700;">提炼</div>
+                <div style="font-size:13px;opacity:0.8;margin-top:4px;">知识点深度归纳</div>
+            </div>
+            <div class="sub-tab-bar" id="extractSubTabs">
+                <div class="sub-tab active" data-tab="all" onclick="switchExtractTab('all')">提炼全集</div>
+                <div class="sub-tab" data-tab="wrong" onclick="switchExtractTab('wrong')">提炼错题</div>
+            </div>
+            <!-- Extract All -->
+            <div id="extractAllPage">
+                <div id="extractAllContent"></div>
+                <div id="extractAllPayOverlay" style="display:none;position:fixed;bottom:60px;left:50%;transform:translateX(-50%);width:100%;max-width:480px;padding:12px 16px;background:linear-gradient(transparent,rgba(248,250,252,0.95) 30%);z-index:50;">
+                    <div style="background:white;border-radius:12px;padding:16px;box-shadow:0 -2px 10px rgba(0,0,0,0.08);">
+                        <div style="font-size:13px;color:#64748b;margin-bottom:8px;">查看全部提炼内容需要解锁</div>
+                        <div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>
+                        <div style="text-align:center;margin-top:6px;"><a href="javascript:void(0)" onclick="switchTab('pageProfile');showInviteModal()" style="font-size:13px;color:#2563eb;text-decoration:underline;cursor:pointer;">去邀请好友 &rarr;</a></div>
+                        <button class="pay-btn" onclick="purchaseKnowledgeAll()" style="margin-top:12px;">&#x1F512; 付费解锁提炼全集 - &yen;99.9</button>
+                    </div>
+                </div>
+            </div>
+            <!-- Extract Wrong -->
+            <div id="extractWrongPage" style="display:none;">
+                <div style="padding:0 16px;display:flex;justify-content:flex-end;margin-bottom:8px;">
+                    <button onclick="startExtractWrong()" style="padding:8px 18px;border-radius:10px;font-size:14px;font-weight:600;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,0.3);">&#x2728; 提炼错题</button>
+                </div>
+                <div id="extractWrongList"></div>
+            </div>
+            <!-- Extract Report Detail -->
+            <div id="extractReportPage" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:#f8fafc;z-index:60;overflow-y:auto;">
+                <div style="padding:12px 16px;background:white;border-bottom:1px solid #e5e7eb;display:flex;align-items:center;">
+                    <button onclick="closeExtractReport()" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回</button>
+                    <span style="margin-left:12px;font-size:16px;font-weight:600;">提炼报告</span>
+                </div>
+                <div id="extractReportContent" style="padding:16px;padding-bottom:80px;"></div>
+            </div>
+        </div>
+
+        <!-- Tab: Profile -->
+        <div id="pageProfile" class="tab-page">
+            <div style="padding:24px 16px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;">
+                <div style="font-size:22px;font-weight:700;" id="profileUsername">用户</div>
+                <div style="font-size:13px;opacity:0.8;margin-top:4px;" id="profileInviteCode">邀请码: --</div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 16px;">
+                <div class="stat-card" style="margin:0;padding:16px;text-align:center;">
+                    <div class="stat-num" id="statTotal">0</div>
+                    <div class="stat-label">总刷题</div>
+                </div>
+                <div class="stat-card" style="margin:0;padding:16px;text-align:center;background:linear-gradient(135deg,#22c55e,#16a34a);">
+                    <div class="stat-num" id="statCorrect">0</div>
+                    <div class="stat-label">答对</div>
+                </div>
+                <div class="stat-card" style="margin:0;padding:16px;text-align:center;background:linear-gradient(135deg,#f97316,#ea580c);">
+                    <div class="stat-num" id="statRate">0%</div>
+                    <div class="stat-label">正确率</div>
+                </div>
+            </div>
+            <div class="card" style="padding:0;">
+                <div style="padding:12px 16px;font-size:13px;font-weight:600;color:#94a3b8;border-bottom:1px solid #f1f5f9;">已购内容</div>
+                <div class="profile-item" onclick="purchaseWrongCollection()">
+                    <span>错题集全部</span>
+                    <span id="purchaseWrongStatus" class="badge badge-orange">未解锁</span>
+                </div>
+                <div class="profile-item" onclick="purchaseKnowledgeAll()">
+                    <span>提炼全集</span>
+                    <span id="purchaseAllStatus" class="badge badge-orange">未解锁</span>
+                </div>
+                <div class="profile-item">
+                    <span>提炼错题次数</span>
+                    <span id="purchaseExtractCount" class="badge badge-blue">0 次</span>
+                </div>
+            </div>
+            <div style="margin-top:20px;">
+              <div style="font-size:16px;font-weight:700;color:#1e293b;margin-bottom:12px;margin-left:16px;">邀请数据</div>
+              <div class="card" style="display:flex;justify-content:space-around;text-align:center;">
+                <div>
+                  <div style="font-size:24px;font-weight:700;color:#2563eb;" id="inviteCount">0</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">成功邀请</div>
+                </div>
+                <div>
+                  <div style="font-size:24px;font-weight:700;color:#22c55e;" id="rewardCount">0</div>
+                  <div style="font-size:12px;color:#94a3b8;margin-top:4px;">获得奖励</div>
+                </div>
+              </div>
+              <!-- 下级列表 -->
+              <div id="inviteeListSection" style="margin-top:12px;display:none;">
+                <div style="font-size:14px;font-weight:600;color:#475569;margin-bottom:8px;margin-left:16px;">我的下级</div>
+                <div id="inviteeList" class="card" style="padding:0;overflow:hidden;"></div>
+              </div>
+              <!-- 奖励明细 -->
+              <div id="rewardListSection" style="margin-top:12px;display:none;">
+                <div style="font-size:14px;font-weight:600;color:#475569;margin-bottom:8px;margin-left:16px;">奖励明细</div>
+                <div id="rewardList" class="card" style="padding:0;overflow:hidden;"></div>
+              </div>
+            </div>
+            <div class="card" style="padding:0;margin-top:4px;">
+                <div style="padding:12px 16px;font-size:13px;font-weight:600;color:#94a3b8;border-bottom:1px solid #f1f5f9;">功能</div>
+                <div class="profile-item" onclick="showShareModal()">
+                    <span>&#x1F517; 分享给好友</span>
+                    <span style="color:#94a3b8;">&rsaquo;</span>
+                </div>
+                <div class="profile-item" onclick="showChangePasswordModal()">
+                    <span>&#x1F512; 修改密码</span>
+                    <span style="color:#94a3b8;">&rsaquo;</span>
+                </div>
+                <div class="profile-item" onclick="handleLogout()" style="color:#ef4444;">
+                    <span>&#x1F6AA; 退出登录</span>
+                    <span style="color:#94a3b8;">&rsaquo;</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Tab Bar -->
+        <div class="bottom-tab-bar" id="bottomTabBar">
+            <div class="tab-item active" data-page="pageQuestions" onclick="switchTab('pageQuestions')">
+                <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+                <div class="tab-label">题库</div>
+            </div>
+            <div class="tab-item" data-page="pageWrong" onclick="switchTab('pageWrong')">
+                <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></div>
+                <div class="tab-label">错题</div>
+            </div>
+            <div class="tab-item" data-page="pageExtract" onclick="switchTab('pageExtract')">
+                <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
+                <div class="tab-label">提炼</div>
+            </div>
+            <div class="tab-item" data-page="pageProfile" onclick="switchTab('pageProfile')">
+                <div class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <div class="tab-label">我的</div>
+            </div>
+        </div>
     </div>
-  </section>
-
-  <main id="app" style="display:none">
-    <section id="questions" class="page active">
-      <header class="header"><h1>题库刷题</h1><p id="progressText">0 / 0</p><div class="progress"><i id="progressFill" style="width:0"></i></div></header>
-      <div id="questionCard" class="card"><div class="empty">题库加载中...</div></div>
-      <div class="actions"><button id="prevBtn" onclick="move(-1)">上一题</button><button id="nextBtn" class="next" onclick="move(1)">下一题</button></div>
-    </section>
-
-    <section id="wrong" class="page">
-      <header class="header"><h1>错题集</h1><p>集中复习答错的题目</p></header>
-      <div id="wrongList" class="card"></div>
-    </section>
-
-    <section id="profile" class="page">
-      <header class="header"><h1 id="profileName">我的</h1><p>学习进度</p></header>
-      <div class="card stat-grid"><div class="stat"><b id="statTotal">0</b><span class="muted">已做</span></div><div class="stat"><b id="statCorrect">0</b><span class="muted">答对</span></div><div class="stat"><b id="statRate">0%</b><span class="muted">正确率</span></div></div>
-      <div class="card"><button class="primary" onclick="logout()">退出登录</button></div>
-    </section>
-
-    <nav class="tabs"><button class="tab active" data-page="questions" onclick="switchPage('questions')">📖<br>题库</button><button class="tab" data-page="wrong" onclick="switchPage('wrong')">❌<br>错题</button><button class="tab" data-page="profile" onclick="switchPage('profile')">👤<br>我的</button></nav>
-  </main>
 </div>
-<div id="toastRoot"></div>
+
+<!-- Modal Container -->
+<div id="modalContainer"></div>
+<!-- Toast Container -->
+<div id="toastContainer"></div>
+
+
 <script>
-  const API='/api';
-  let token=localStorage.getItem('du_tiku_token')||'';
-  let user=null,questions=[],answers={},wrong=[],index=0;
-  async function request(path,options={}){options.headers=options.headers||{};if(token)options.headers.Authorization='Bearer '+token;if(options.body&&typeof options.body==='object'){options.headers['Content-Type']='application/json';options.body=JSON.stringify(options.body)}const r=await fetch(API+path,options);const data=await r.json().catch(()=>({}));if(!r.ok)throw new Error(data.error||'请求失败');return data}
-  function toast(text){const el=document.createElement('div');el.className='toast';el.textContent=text;document.getElementById('toastRoot').appendChild(el);setTimeout(()=>el.remove(),1600)}
-  function showRegister(){loginForm.style.display='none';registerForm.style.display='block'}
-  function showLogin(){registerForm.style.display='none';loginForm.style.display='block'}
-  async function login(){try{const r=await request('/auth/login',{method:'POST',body:{username:loginUsername.value.trim(),password:loginPassword.value}});setSession(r);await load();showApp()}catch(e){toast(e.message)}}
-  async function register(){if(regPassword.value!==regPassword2.value)return toast('两次密码不一致');try{const r=await request('/auth/register',{method:'POST',body:{username:regUsername.value.trim(),password:regPassword.value,confirmPassword:regPassword2.value}});setSession(r);await load();showApp()}catch(e){toast(e.message)}}
-  function setSession(r){token=r.token;user=r.user;localStorage.setItem('du_tiku_token',token)}
-  async function load(){const [me,q,a,w]=await Promise.all([request('/auth/me'),request('/questions/'),request('/answers/'),request('/wrong/')]);user=me;questions=q.questions||[];answers=a.answers||{};wrong=w.wrongQuestions||[];render();renderWrong();renderProfile()}
-  function showApp(){loginPage.style.display='none';app.style.display='block'}
-  function logout(){token='';user=null;localStorage.removeItem('du_tiku_token');app.style.display='none';loginPage.style.display='block'}
-  function render(){if(!questions.length){questionCard.innerHTML='<div class="empty">暂无题目</div>';return}index=Math.max(0,Math.min(index,questions.length-1));const q=questions[index],record=answers[q.id],selected=record&&record.selected;let html='<div><span class="type">'+q.type+'</span><span class="qno">第 '+(index+1)+' 题</span><div class="stem">'+q.stem+'</div>';Object.keys(q.options||{}).forEach(k=>{let cls='option';if(record&&k===q.answer)cls+=' correct';else if(record&&k===selected)cls+=' wrong';html+='<button class="'+cls+'" '+(record?'disabled':'onclick="answer('+q.id+',\''+k+'\')"')+'><b>'+k+'.</b> '+q.options[k]+'</button>'});if(record)html+='<div class="analysis"><div class="answer">正确答案：'+q.answer+'</div>'+(q.analysis||'')+'</div>';questionCard.innerHTML=html+'</div>';const done=Object.keys(answers).length;progressText.textContent=done+' / '+questions.length;progressFill.style.width=(questions.length?done/questions.length*100:0)+'%';prevBtn.disabled=index===0;nextBtn.disabled=index===questions.length-1}
-  async function answer(id,selected){try{await request('/answers/',{method:'POST',body:{questionId:id,selected}});const q=questions.find(x=>x.id===id);answers[id]={selected,isCorrect:selected===q.answer};await load();render()}catch(e){toast(e.message)}}
-  function move(delta){index+=delta;render();scrollTo({top:0,behavior:'smooth'})}
-  function renderWrong(){if(!wrong.length){wrongList.innerHTML='<div class="empty">暂无错题</div>';return}wrongList.innerHTML=wrong.map(x=>'<div class="wrong-row"><b>第 '+x.id+' 题 · '+x.type+'</b><div class="muted">'+x.stem+'</div></div>').join('')}
-  function renderProfile(){if(!user)return;profileName.textContent=user.username;const list=Object.values(answers),correct=list.filter(x=>x.isCorrect).length;statTotal.textContent=list.length;statCorrect.textContent=correct;statRate.textContent=(list.length?Math.round(correct/list.length*100):0)+'%'}
-  function switchPage(id){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.getElementById(id).classList.add('active');document.querySelector('[data-page="'+id+'"]').classList.add('active');if(id==='wrong')renderWrong();if(id==='profile')renderProfile()}
-  (async()=>{if(!token)return;try{await load();showApp()}catch(e){logout()}})();
+(function() {
+    'use strict';
+
+    window.onerror = function(msg, url, line, col, err) {
+        console.error('[GLOBAL_ERROR]', msg, 'line:', line, 'col:', col, 'stack:', err && err.stack);
+        if (window.showToast) window.showToast('JS错误: ' + msg + ' (line ' + line + ')');
+    };
+
+    const API_BASE = '/api';
+    let TOKEN = localStorage.getItem('du_tiku_token') || '';
+    let CURRENT_USER = null;
+    let QUESTIONS = [];
+    let ANSWERS = {};
+    let PURCHASES = { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
+    let WRONG_QUESTIONS = [];
+    let EXTRACT_REPORTS = [];
+    let INVITE_INFO = { invitees: [], rewards: [] };
+    let currentQuestionIndex = 0;
+    let currentExtractTab = 'all';
+
+    const TYPE_COLORS = {
+        '单选题': { bg: '#dbeafe', color: '#1d4ed8' },
+        '多选题': { bg: '#ede9fe', color: '#7c3aed' },
+        '判断题': { bg: '#dcfce7', color: '#15803d' },
+        '填空题': { bg: '#ffedd5', color: '#c2410c' },
+    };
+
+    // ===== API =====
+    async function api(path, opts) {
+        opts = opts || {};
+        opts.headers = opts.headers || {};
+        if (TOKEN) opts.headers['Authorization'] = 'Bearer ' + TOKEN;
+        if (opts.body && typeof opts.body === 'object') {
+            opts.body = JSON.stringify(opts.body);
+            opts.headers['Content-Type'] = 'application/json';
+        }
+        const resp = await fetch(API_BASE + path, opts);
+        const data = await resp.json().catch(() => ({}));
+        if (!resp.ok) throw new Error(data.error || ('请求失败 ' + resp.status));
+        return data;
+    }
+
+    function postAnswerQuietly(qId, letter, isCorrect) {
+        api('/answers/', { method: 'POST', body: { questionId: qId, selected: letter, isCorrect: isCorrect } })
+            .then(function(res) {
+                AppState.set('userStats', res.stats || AppState.get('userStats'));
+                updateProfile();
+                if (!isCorrect) {
+                    return loadUserData().then(function() {
+                        if (currentExtractTab === 'wrong') renderExtractWrongList();
+                    });
+                }
+            })
+            .catch(function(e) { console.error('post answer error', e); });
+    }
+
+    // ===== AppState (兼容原接口) =====
+    const AppState = {
+        _data: {
+            isLoggedIn: false,
+            currentUser: null,
+            answers: {},
+            wrongQuestions: [],
+            userStats: { totalAnswered: 0, totalCorrect: 0 },
+            purchases: { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 },
+            extractReports: [],
+            inviteInfo: { inviterCode: '', invitees: [], rewards: [] }
+        },
+        init() {},
+        save() {},
+        get(key) {
+            if (key === 'currentUser') return CURRENT_USER;
+            if (key === 'answers') return ANSWERS;
+            if (key === 'wrongQuestions') return WRONG_QUESTIONS;
+            if (key === 'purchases') return PURCHASES;
+            if (key === 'extractReports') return EXTRACT_REPORTS;
+            if (key === 'inviteInfo') return INVITE_INFO;
+            if (key === 'isLoggedIn') return !!TOKEN;
+            if (key === 'userStats') return this._data.userStats;
+            return this._data[key];
+        },
+        set(key, value) {
+            if (key === 'answers') ANSWERS = value;
+            if (key === 'wrongQuestions') WRONG_QUESTIONS = value;
+            if (key === 'purchases') PURCHASES = value;
+            if (key === 'extractReports') EXTRACT_REPORTS = value;
+            if (key === 'inviteInfo') INVITE_INFO = value;
+            if (key === 'userStats') this._data.userStats = value;
+            this._data[key] = value;
+        }
+    };
+
+    function setToken(token, user) {
+        TOKEN = token;
+        CURRENT_USER = user;
+        if (token) localStorage.setItem('du_tiku_token', token);
+        else localStorage.removeItem('du_tiku_token');
+    }
+
+    async function loadUserData() {
+        const [qRes, aRes, pRes, wRes, rRes, iRes] = await Promise.all([
+            api('/questions/'),
+            api('/answers/'),
+            api('/purchases/'),
+            api('/wrong/'),
+            api('/ai/reports'),
+            api('/invite/')
+        ]);
+        QUESTIONS = qRes.questions || [];
+        ANSWERS = aRes.answers || {};
+        PURCHASES = pRes || { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
+        WRONG_QUESTIONS = wRes.wrongQuestions || [];
+        EXTRACT_REPORTS = rRes.reports || [];
+        INVITE_INFO = iRes || { invitees: [], rewards: [] };
+        AppState.set('answers', ANSWERS);
+        AppState.set('wrongQuestions', WRONG_QUESTIONS);
+        AppState.set('purchases', PURCHASES);
+        AppState.set('extractReports', EXTRACT_REPORTS);
+        AppState.set('inviteInfo', INVITE_INFO);
+        const total = Object.keys(ANSWERS).length;
+        const correct = Object.values(ANSWERS).filter(function(a) {
+            return typeof a === 'object' ? a.isCorrect : false;
+        }).length;
+        AppState.set('userStats', { totalAnswered: total, totalCorrect: correct });
+    }
+
+    // ===== Toast / Modal =====
+    function showToast(msg, duration) {
+        duration = duration || 1500;
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.textContent = msg;
+        container.appendChild(toast);
+        setTimeout(function() { toast.remove(); }, duration);
+    }
+    window.showToast = showToast;
+
+    function showModal(html) {
+        const container = document.getElementById('modalContainer');
+        container.innerHTML = '<div class="modal-overlay" onclick="if(event.target===this)closeModal()"><div class="modal-box">' + html + '</div></div>';
+    }
+    window.showModal = showModal;
+
+    window.closeModal = function() {
+        document.getElementById('modalContainer').innerHTML = '';
+    };
+
+    // ===== Auth =====
+    window.handleLogin = async function() {
+        const username = document.getElementById('loginUsername').value.trim();
+        const password = document.getElementById('loginPassword').value.trim();
+        if (!username || !password) { showToast('请输入用户名和密码'); return; }
+        try {
+            const res = await api('/auth/login', { method: 'POST', body: { username, password } });
+            setToken(res.token, res.user);
+            await loadUserData();
+            showMainApp();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.handleRegister = async function() {
+        const username = document.getElementById('regUsername').value.trim();
+        const password = document.getElementById('regPassword').value.trim();
+        const password2 = document.getElementById('regPassword2').value.trim();
+        const inviteCode = document.getElementById('regInviteCode').value.trim();
+        if (!username || !password) { showToast('请输入用户名和密码'); return; }
+        if (username.length < 2) { showToast('用户名至少2个字符'); return; }
+        if (password.length < 4) { showToast('密码至少4位'); return; }
+        if (password !== password2) { showToast('两次密码不一致'); return; }
+        try {
+            const res = await api('/auth/register', { method: 'POST', body: { username, password, confirmPassword: password2, inviteCode } });
+            setToken(res.token, res.user);
+            await loadUserData();
+            showToast('注册成功！');
+            showMainApp();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.showRegister = function() {
+        document.getElementById('loginForm').style.display = 'none';
+        document.getElementById('registerForm').style.display = 'block';
+    };
+
+    window.showLogin = function() {
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+    };
+
+    function showMainApp() {
+        document.getElementById('loginPage').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'block';
+        switchTab('pageQuestions');
+        renderQuestion();
+        updateProfile();
+    }
+
+    window.handleLogout = function() {
+        setToken('', null);
+        QUESTIONS = [];
+        ANSWERS = {};
+        PURCHASES = { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
+        WRONG_QUESTIONS = [];
+        EXTRACT_REPORTS = [];
+        INVITE_INFO = { invitees: [], rewards: [] };
+        document.getElementById('mainApp').style.display = 'none';
+        document.getElementById('loginPage').style.display = 'block';
+        document.getElementById('loginUsername').value = '';
+        document.getElementById('loginPassword').value = '';
+        showToast('已退出登录');
+    };
+
+    // ===== Tabs =====
+    window.switchTab = function(pageId) {
+        document.querySelectorAll('.tab-page').forEach(function(p) { p.classList.remove('active'); });
+        document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+        document.getElementById(pageId).classList.add('active');
+        const tab = document.querySelector('.tab-item[data-page="' + pageId + '"]');
+        if (tab) tab.classList.add('active');
+        if (pageId === 'pageQuestions') renderQuestion();
+        if (pageId === 'pageWrong') renderWrongList();
+        if (pageId === 'pageExtract') renderExtractPage();
+        if (pageId === 'pageProfile') updateProfile();
+    };
+
+    // ===== Questions =====
+    function getTotalQuestions() { return QUESTIONS.length; }
+    function getAnsweredCount() { return Object.keys(ANSWERS).length; }
+
+    function getUserAnswer(qId) {
+        const a = ANSWERS[qId];
+        if (a === undefined) return undefined;
+        return typeof a === 'object' ? a.selected : a;
+    }
+
+    function isAnswerCorrect(qId) {
+        const a = ANSWERS[qId];
+        if (a === undefined) return false;
+        if (typeof a === 'object') return !!a.isCorrect;
+        const q = QUESTIONS.find(function(item) { return item.id === Number(qId); });
+        return q ? a === q.answer : false;
+    }
+
+    function renderQuestion() {
+        if (!QUESTIONS || !QUESTIONS.length) {
+            document.getElementById('questionCard').innerHTML =
+                '<div style="text-align:center;padding:40px;color:#94a3b8;">' +
+                '<div style="font-size:48px;margin-bottom:12px;">&#x1F4DA;</div>' +
+                '<div>题库加载中或暂无题目</div>' +
+                '<div style="font-size:13px;margin-top:8px;">请稍候或刷新页面</div></div>';
+            document.getElementById('progressText').textContent = '0 / 0';
+            document.getElementById('progressFill').style.width = '0%';
+            return;
+        }
+
+        const total = getTotalQuestions();
+        const answered = getAnsweredCount();
+        const pct = total > 0 ? (answered / total * 100) : 0;
+        document.getElementById('progressFill').style.width = pct + '%';
+        document.getElementById('progressText').textContent = answered + ' / ' + total;
+
+        const q = QUESTIONS[currentQuestionIndex];
+        const userAnswer = getUserAnswer(q.id);
+        const hasAnswered = userAnswer !== undefined;
+
+        // Build options HTML
+        let options = '';
+        const opts = q.options || {};
+        Object.keys(opts).forEach(function(letter) {
+            const optText = opts[letter];
+            let cls = 'option-btn';
+            let icon = '';
+            if (hasAnswered) {
+                cls += ' disabled';
+                if (letter === q.answer) {
+                    cls += ' show-correct';
+                    icon = ' &#x2713;';
+                } else if (letter === userAnswer && letter !== q.answer) {
+                    cls += ' wrong';
+                    icon = ' &#x2717;';
+                }
+            }
+            options += '<button class="' + cls + '" ' + (hasAnswered ? '' : 'onclick="selectOption(' + q.id + ',\'' + letter + '\')"') + '>' +
+                '<span style="font-weight:600;color:#64748b;margin-right:8px;">' + letter + '.</span>' +
+                optText + icon + '</button>';
+        });
+
+        // Analysis HTML
+        let analysisHtml = '';
+        if (hasAnswered) {
+            analysisHtml = '<div id="analysisSection" style="margin-top:16px;" class="slide-up">' +
+                '<div style="font-size:15px;font-weight:700;margin-bottom:10px;color:#1e293b;">&#x1F4D6; 题目解析</div>' +
+                '<div class="analysis-section correct-answer">' +
+                '<div style="font-weight:600;margin-bottom:4px;color:#15803d;">&#x2714; 正确答案</div>' +
+                '<div>' + (q.answer || '--') + '</div></div>' +
+                (q.analysis ? '<div class="analysis-section thinking">' +
+                '<div style="font-weight:600;margin-bottom:4px;color:#1d4ed8;">&#x1F4A1; 解题思路</div>' +
+                '<div>' + q.analysis + '</div></div>' : '') +
+                (q.wrongAnalysis ? '<div class="analysis-section wrong-analysis">' +
+                '<div style="font-weight:600;margin-bottom:4px;color:#c2410c;">&#x1F50D; 错误选项辨析</div>' +
+                '<div>' + q.wrongAnalysis + '</div></div>' : '') +
+                (q.knowledgeReview ? '<div class="analysis-section knowledge">' +
+                '<div style="font-weight:600;margin-bottom:4px;color:#a16207;">&#x1F4DD; 知识点回顾</div>' +
+                '<div>' + q.knowledgeReview + '</div></div>' : '') +
+                '</div>';
+
+            if (q.variants && q.variants.length > 0) {
+                analysisHtml += '<div id="variantSection" style="" class="variant-section slide-up">' +
+                    '<div style="font-size:15px;font-weight:700;margin-bottom:12px;color:#1e293b;">&#x1F504; 举一反三</div>';
+                q.variants.forEach(function(v, vi) {
+                    analysisHtml += '<div style="margin-bottom:16px;">' +
+                        '<div style="font-size:14px;font-weight:600;margin-bottom:8px;color:#475569;">变式题 ' + (vi + 1) + '：</div>' +
+                        '<div style="font-size:14px;line-height:1.6;margin-bottom:10px;">' + (v.stem || '') + '</div>' +
+                        '<div id="variant_' + vi + '_options">';
+                    const vOpts = v.options || {};
+                    Object.keys(vOpts).forEach(function(letter2) {
+                        const optText2 = vOpts[letter2];
+                        analysisHtml += '<button class="variant-option-btn" data-vi="' + vi + '" data-letter="' + letter2 + '" data-correct="' + (letter2 === v.answer ? '1' : '0') + '" onclick="selectVariant(this,' + vi + ')">' +
+                            '<span style="font-weight:600;color:#64748b;margin-right:6px;">' + letter2 + '.</span>' + optText2 + '</button>';
+                    });
+                    analysisHtml += '</div>' +
+                        '<div id="variant_' + vi + '_analysis" style="display:none;margin-top:8px;padding:10px;border-radius:8px;background:#f0fdf4;font-size:13px;line-height:1.6;color:#15803d;"></div>' +
+                        '</div>';
+                });
+                analysisHtml += '</div>';
+            }
+        }
+
+        const typeColor = TYPE_COLORS[q.type] || { bg: '#f1f5f9', color: '#64748b' };
+
+        document.getElementById('questionCard').innerHTML =
+            '<div class="fade-in">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">' +
+            '<span class="type-tag" style="background:' + typeColor.bg + ';color:' + typeColor.color + ';">' + (q.type || '单选题') + '</span>' +
+            '<span style="font-size:13px;color:#94a3b8;">第 ' + (currentQuestionIndex + 1) + ' 题</span></div>' +
+            '<div style="font-size:16px;line-height:1.7;color:#1e293b;font-weight:500;margin-bottom:16px;">' + (q.stem || '') + '</div>' +
+            options +
+            analysisHtml +
+            '</div>';
+
+        if (hasAnswered) {
+            const analysisSection = document.getElementById('analysisSection');
+            const variantSection = document.getElementById('variantSection');
+            if (analysisSection) analysisSection.style.display = 'block';
+            if (variantSection) variantSection.style.display = 'block';
+        }
+
+        // Update nav buttons
+        document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+        const nextBtn = document.getElementById('nextBtn');
+        if (currentQuestionIndex >= total - 1) {
+            nextBtn.textContent = '完成';
+            nextBtn.disabled = false;
+        } else {
+            nextBtn.textContent = '下一题';
+            nextBtn.disabled = false;
+        }
+    }
+
+    window.resetAllAnswers = function() {
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:40px;margin-bottom:12px;">&#x26A0;&#xFE0F;</div>' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">确认重置？</div>' +
+            '<div style="font-size:14px;color:#64748b;margin-bottom:20px;">将清空所有答题记录和统计数据<br>（错题集不会被清空）</div>' +
+            '<div style="display:flex;gap:12px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
+            '<button onclick="confirmReset()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:15px;font-weight:600;cursor:pointer;">确认重置</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmReset = async function() {
+        try {
+            await api('/answers/reset', { method: 'POST' });
+            await loadUserData();
+            currentQuestionIndex = 0;
+            closeModal();
+            showToast('已重置');
+            renderQuestion();
+            updateProfile();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.selectOption = function(qId, letter) {
+        qId = Number(qId);
+        const q = QUESTIONS.find(function(item) { return item.id === qId; });
+        if (!q) return;
+
+        const answers = AppState.get('answers');
+        if (answers[qId] !== undefined) return;
+
+        const isCorrect = letter === q.answer;
+        answers[qId] = { selected: letter, isCorrect: isCorrect };
+        AppState.set('answers', answers);
+
+        // Update stats locally
+        const stats = AppState.get('userStats');
+        stats.totalAnswered++;
+        if (isCorrect) {
+            stats.totalCorrect++;
+        } else {
+            const wrongs = AppState.get('wrongQuestions');
+            const existing = wrongs.find(function(w) { return Number(w.id) === qId; });
+            if (existing) {
+                existing.count++;
+            } else {
+                wrongs.push({ id: qId, count: 1 });
+            }
+            AppState.set('wrongQuestions', wrongs);
+        }
+        AppState.set('userStats', stats);
+
+        // Show feedback animation on the selected button
+        const allBtns = document.querySelectorAll('#questionCard .option-btn');
+        allBtns.forEach(function(btn) {
+            btn.classList.add('disabled');
+            const letterSpan = btn.querySelector('span');
+            if (letterSpan) {
+                const btnLetter = letterSpan.textContent.replace('.', '').trim();
+                if (btnLetter === letter) {
+                    if (isCorrect) {
+                        btn.classList.add('correct');
+                        btn.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:8px;">' + letter + '.</span>' +
+                            (q.options[letter] || '') + ' &#x2713;';
+                    } else {
+                        btn.classList.add('wrong');
+                        btn.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:8px;">' + letter + '.</span>' +
+                            (q.options[letter] || '') + ' &#x2717;';
+                    }
+                } else if (btnLetter === q.answer) {
+                    btn.classList.add('show-correct');
+                    btn.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:8px;">' + btnLetter + '.</span>' +
+                        (q.options[btnLetter] || '') + ' &#x2713;';
+                }
+            }
+        });
+
+        // Sync to backend and re-render with analysis after animation
+        postAnswerQuietly(qId, letter, isCorrect);
+        setTimeout(function() {
+            renderQuestion();
+        }, 500);
+    };
+
+    window.selectVariant = function(btn, vi) {
+        const q = QUESTIONS[currentQuestionIndex];
+        const variant = q.variants[vi];
+        const options = btn.parentElement.querySelectorAll('.variant-option-btn');
+        options.forEach(function(o) { o.style.pointerEvents = 'none'; });
+
+        const selectedLetter = btn.dataset.letter;
+
+        if (selectedLetter === variant.answer) {
+            btn.classList.add('correct');
+            btn.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:6px;">' + selectedLetter + '.</span>' + (variant.options[selectedLetter] || '') + ' &#x2713;';
+        } else {
+            btn.classList.add('wrong');
+            btn.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:6px;">' + selectedLetter + '.</span>' + (variant.options[selectedLetter] || '') + ' &#x2717;';
+            options.forEach(function(o) {
+                if (o.dataset.letter === variant.answer) {
+                    o.classList.add('correct');
+                    o.innerHTML = '<span style="font-weight:600;color:#64748b;margin-right:6px;">' + o.dataset.letter + '.</span>' + (variant.options[o.dataset.letter] || '') + ' &#x2713;';
+                }
+            });
+        }
+
+        const analysisEl = document.getElementById('variant_' + vi + '_analysis');
+        if (variant.analysis) {
+            analysisEl.textContent = variant.analysis;
+        } else if (selectedLetter === variant.answer) {
+            analysisEl.textContent = '回答正确！';
+        } else {
+            analysisEl.textContent = '回答错误。正确答案是：' + variant.answer;
+        }
+        analysisEl.style.display = 'block';
+    };
+
+    window.prevQuestion = function() {
+        if (currentQuestionIndex > 0) {
+            currentQuestionIndex--;
+            renderQuestion();
+            window.scrollTo(0, 0);
+        }
+    };
+
+    window.nextQuestion = function() {
+        const total = getTotalQuestions();
+        if (currentQuestionIndex < total - 1) {
+            currentQuestionIndex++;
+            renderQuestion();
+            window.scrollTo(0, 0);
+        } else {
+            showToast('已完成全部题目！');
+        }
+    };
+
+    // ===== Wrong Questions =====
+    function renderWrongList() {
+        const wrongs = AppState.get('wrongQuestions');
+        const unlocked = AppState.get('purchases').wrong_collection;
+        const sorted = wrongs.slice().sort(function(a, b) {
+            return b.count - a.count || (a.id > b.id ? 1 : -1);
+        });
+        const limit = unlocked ? sorted.length : Math.min(sorted.length, 10);
+
+        document.getElementById('wrongCountText').textContent = wrongs.length + ' 道错题';
+
+        if (sorted.length === 0) {
+            document.getElementById('wrongList').innerHTML =
+                '<div style="text-align:center;padding:60px 20px;color:#94a3b8;">' +
+                '<div style="font-size:48px;margin-bottom:12px;">&#x2705;</div>' +
+                '<div>暂无错题，继续保持！</div></div>';
+            document.getElementById('wrongPayOverlay').style.display = 'none';
+            return;
+        }
+
+        let html = '<div class="card" style="padding:0;margin-top:12px;">';
+        for (let i = 0; i < limit; i++) {
+            const w = sorted[i];
+            const q = QUESTIONS.find(function(item) { return item.id === Number(w.id); });
+            const stem = q ? (q.stem || '') : (w.stem || ('题目ID: ' + w.id));
+            const summary = stem.length > 50 ? stem.substring(0, 50) + '...' : stem;
+            html += '<div class="wrong-item" onclick="openWrongDetail(' + Number(w.id) + ')">' +
+                '<div style="flex:1;min-width:0;">' +
+                '<div style="font-size:14px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + summary + '</div>' +
+                '</div>' +
+                '<div class="wrong-count" style="margin-left:10px;">' + w.count + '</div>' +
+                '<button onclick="event.stopPropagation();deleteWrongQuestion(' + Number(w.id) + ')" style="margin-left:8px;padding:6px;border:none;background:none;color:#94a3b8;cursor:pointer;font-size:16px;">&#x1F5D1;</button>' +
+                '</div>';
+        }
+        html += '</div>';
+
+        if (wrongs.length > 10 && !unlocked) {
+            html += '<div style="text-align:center;padding:16px;color:#94a3b8;font-size:13px;">已显示前10条，共 ' + wrongs.length + ' 条</div>';
+        }
+
+        if (wrongs.length > 0) {
+            html += '<div style="padding:12px 16px;">' +
+                '<button onclick="clearAllWrongQuestions()" style="width:100%;padding:12px;border-radius:10px;border:1.5px solid #fecaca;background:#fef2f2;color:#ef4444;font-size:14px;font-weight:600;cursor:pointer;">一键清空错题集</button>' +
+                '</div>';
+        }
+
+        document.getElementById('wrongList').innerHTML = html;
+        document.getElementById('wrongPayOverlay').style.display = (wrongs.length > 10 && !unlocked) ? 'block' : 'none';
+    }
+
+    window.deleteWrongQuestion = async function(qId) {
+        try {
+            await api('/wrong/' + qId, { method: 'DELETE' });
+            await loadUserData();
+            showToast('已删除');
+            renderWrongList();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.clearAllWrongQuestions = function() {
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:40px;margin-bottom:12px;">&#x26A0;&#xFE0F;</div>' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">确认清空？</div>' +
+            '<div style="font-size:14px;color:#64748b;margin-bottom:20px;">将清空所有错题记录</div>' +
+            '<div style="display:flex;gap:12px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
+            '<button onclick="confirmClearWrongs()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:15px;font-weight:600;cursor:pointer;">确认清空</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmClearWrongs = async function() {
+        try {
+            await api('/wrong/clear', { method: 'POST' });
+            await loadUserData();
+            closeModal();
+            showToast('已清空');
+            renderWrongList();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.openWrongDetail = function(qId) {
+        qId = Number(qId);
+        const q = QUESTIONS.find(function(item) { return item.id === qId; });
+        if (!q) return;
+
+        const userAnswer = getUserAnswer(qId);
+
+        const typeColor = TYPE_COLORS[q.type] || { bg: '#f1f5f9', color: '#64748b' };
+        let html = '<div class="card" style="margin:12px;">' +
+            '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">' +
+            '<span class="type-tag" style="background:' + typeColor.bg + ';color:' + typeColor.color + ';">' + (q.type || '单选题') + '</span></div>' +
+            '<div style="font-size:16px;line-height:1.7;color:#1e293b;font-weight:500;margin-bottom:14px;">' + (q.stem || '') + '</div>';
+
+        const opts = q.options || {};
+        Object.keys(opts).forEach(function(letter) {
+            const optText = opts[letter];
+            let cls = 'option-btn disabled';
+            let icon = '';
+            if (letter === q.answer) {
+                cls += ' show-correct';
+                icon = ' &#x2713;';
+            } else if (letter === userAnswer && letter !== q.answer) {
+                cls += ' wrong';
+                icon = ' &#x2717;';
+            }
+            html += '<button class="' + cls + '">' +
+                '<span style="font-weight:600;color:#64748b;margin-right:8px;">' + letter + '.</span>' + optText + icon + '</button>';
+        });
+
+        html += '<div style="margin-top:14px;">' +
+            '<div class="analysis-section correct-answer"><div style="font-weight:600;margin-bottom:4px;color:#15803d;">&#x2714; 正确答案</div><div>' + (q.answer || '--') + '</div></div>';
+
+        if (q.analysis) {
+            html += '<div class="analysis-section thinking"><div style="font-weight:600;margin-bottom:4px;color:#1d4ed8;">&#x1F4A1; 解题思路</div><div>' + q.analysis + '</div></div>';
+        }
+        if (q.wrongAnalysis) {
+            html += '<div class="analysis-section wrong-analysis"><div style="font-weight:600;margin-bottom:4px;color:#c2410c;">&#x1F50D; 错误选项辨析</div><div>' + q.wrongAnalysis + '</div></div>';
+        }
+        if (q.knowledgeReview) {
+            html += '<div class="analysis-section knowledge"><div style="font-weight:600;margin-bottom:4px;color:#a16207;">&#x1F4DD; 知识点回顾</div><div>' + q.knowledgeReview + '</div></div>';
+        }
+        html += '</div></div>';
+
+        document.getElementById('wrongDetailContent').innerHTML = html;
+        document.getElementById('wrongDetailPage').style.display = 'block';
+    };
+
+    window.closeWrongDetail = function() {
+        document.getElementById('wrongDetailPage').style.display = 'none';
+    };
+
+    // ===== Purchases =====
+    window.purchaseWrongCollection = function() {
+        if (AppState.get('purchases').wrong_collection) {
+            showToast('已解锁');
+            return;
+        }
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">解锁全部错题集</div>' +
+            '<div style="font-size:28px;font-weight:800;color:#f97316;margin-bottom:16px;">&yen;2.9</div>' +
+            '<div style="font-size:13px;color:#64748b;margin-bottom:20px;">测试版自动核销，无需支付</div>' +
+            '<div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>' +
+            '<div style="text-align:center;margin-top:6px;"><a href="javascript:void(0)" onclick="closeModal();switchTab(\'pageProfile\');showInviteModal()" style="font-size:13px;color:#2563eb;text-decoration:underline;cursor:pointer;">去邀请好友 &rarr;</a></div>' +
+            '<div style="display:flex;gap:12px;margin-top:16px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
+            '<button onclick="confirmPurchaseWrong()" style="flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#f97316,#ea580c);color:white;font-size:15px;font-weight:600;cursor:pointer;">确认解锁</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmPurchaseWrong = async function() {
+        try {
+            await api('/purchases/buy', { method: 'POST', body: { type: 'wrong_collection' } });
+            await loadUserData();
+            closeModal();
+            showToast('解锁成功！');
+            renderWrongList();
+            updateProfile();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.purchaseKnowledgeAll = function() {
+        if (AppState.get('purchases').knowledge_all) {
+            showToast('已解锁');
+            return;
+        }
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">解锁提炼全集</div>' +
+            '<div style="font-size:28px;font-weight:800;color:#8b5cf6;margin-bottom:16px;">&yen;99.9</div>' +
+            '<div style="font-size:13px;color:#64748b;margin-bottom:20px;">测试版自动核销，无需支付</div>' +
+            '<div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>' +
+            '<div style="text-align:center;margin-top:6px;"><a href="javascript:void(0)" onclick="closeModal();switchTab(\'pageProfile\');showInviteModal()" style="font-size:13px;color:#2563eb;text-decoration:underline;cursor:pointer;">去邀请好友 &rarr;</a></div>' +
+            '<div style="display:flex;gap:12px;margin-top:16px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
+            '<button onclick="confirmPurchaseAll()" style="flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;font-size:15px;font-weight:600;cursor:pointer;">确认解锁</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmPurchaseAll = async function() {
+        try {
+            await api('/purchases/buy', { method: 'POST', body: { type: 'knowledge_all' } });
+            await loadUserData();
+            closeModal();
+            showToast('解锁成功！');
+            renderExtractPage();
+            updateProfile();
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    // ===== Extract Page =====
+    window.switchExtractTab = function(tab) {
+        currentExtractTab = tab;
+        document.querySelectorAll('#extractSubTabs .sub-tab').forEach(function(t) {
+            t.classList.toggle('active', t.dataset.tab === tab);
+        });
+        document.getElementById('extractAllPage').style.display = tab === 'all' ? 'block' : 'none';
+        document.getElementById('extractWrongPage').style.display = tab === 'wrong' ? 'block' : 'none';
+        renderExtractPage();
+    };
+
+    function renderExtractPage() {
+        if (currentExtractTab === 'all') {
+            renderExtractAll();
+        } else {
+            renderExtractWrongList();
+        }
+    }
+
+    function renderExtractAll() {
+        const unlocked = AppState.get('purchases').knowledge_all;
+        const contentEl = document.getElementById('extractAllContent');
+
+        if (unlocked) {
+            const saved = EXTRACT_REPORTS.find(function(r) { return r.type === 'all'; });
+            if (saved && saved.content) {
+                let html = '';
+                if (typeof marked !== 'undefined') html = marked.parse(saved.content);
+                else html = '<pre style="white-space:pre-wrap;font-size:14px;line-height:1.7;">' + saved.content + '</pre>';
+                contentEl.innerHTML = '<div class="card markdown-body">' + html + '</div>';
+                document.getElementById('extractAllPayOverlay').style.display = 'none';
+                return;
+            }
+            contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;">' +
+                '<div style="font-size:48px;margin-bottom:16px;">&#x2728;</div>' +
+                '<div style="font-size:16px;font-weight:600;color:#475569;">正在为您生成提炼全集...</div>' +
+                '<div style="font-size:13px;color:#94a3b8;margin-top:8px;">AI正在分析全部 ' + getTotalQuestions() + ' 道题目</div></div>';
+            document.getElementById('extractAllPayOverlay').style.display = 'none';
+            generateExtractAll();
+            return;
+        }
+
+        contentEl.innerHTML = '<div class="card" style="text-align:center;padding:60px 20px;">' +
+            '<div style="font-size:48px;margin-bottom:16px;">&#x1F4CB;</div>' +
+            '<div style="font-size:16px;font-weight:600;color:#475569;">人工智能训练师（三级）考前速记指南</div>' +
+            '<div style="font-size:14px;color:#94a3b8;margin-top:8px;line-height:1.8;">涵盖全部 ' + getTotalQuestions() + ' 道考试题目的知识点提炼<br>AI深度解析，高颗粒度考前速记</div>' +
+            '<div style="margin-top:20px;padding:16px;background:#f8fafc;border-radius:10px;text-align:left;">' +
+            '<div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:8px;">内容预览：</div>' +
+            '<div style="font-size:13px;color:#94a3b8;line-height:1.8;">' +
+            '- 职业认知核心知识<br>' +
+            '- Python数据处理工具速查<br>' +
+            '- SQL/数据库核心语法<br>' +
+            '- SPSS统计分析要点<br>' +
+            '- Docker容器化部署<br>' +
+            '- 数据标注工具大全<br>' +
+            '- Excel进阶函数与操作<br>' +
+            '- 机器学习评估指标<br>' +
+            '- ...及更多知识点</div></div></div>';
+        document.getElementById('extractAllPayOverlay').style.display = 'block';
+    }
+
+    window.generateExtractAll = async function() {
+        const contentEl = document.getElementById('extractAllContent');
+        contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;"><div>生成中，请稍候...</div></div>';
+        try {
+            const res = await api('/ai/extract', { method: 'POST', body: { type: 'all' } });
+            EXTRACT_REPORTS.unshift(res);
+            AppState.set('extractReports', EXTRACT_REPORTS);
+            await loadUserData();
+            renderExtractAll();
+        } catch (e) {
+            contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;">' +
+                '<div style="font-size:16px;font-weight:600;color:#ef4444;">生成失败</div>' +
+                '<div style="font-size:13px;color:#94a3b8;margin-top:8px;">' + e.message + '</div>' +
+                '<button onclick="generateExtractAll()" style="margin-top:16px;padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;font-size:14px;font-weight:600;cursor:pointer;">重试</button></div>';
+        }
+    };
+
+    function renderExtractWrongList() {
+        const listEl = document.getElementById('extractWrongList');
+        const reports = EXTRACT_REPORTS.filter(function(r) { return r.type === 'wrong'; });
+        if (reports.length === 0) {
+            listEl.innerHTML =
+                '<div style="text-align:center;padding:60px 20px;color:#94a3b8;">' +
+                '<div style="font-size:48px;margin-bottom:12px;">&#x1F4DD;</div>' +
+                '<div>暂无提炼报告</div>' +
+                '<div style="font-size:13px;margin-top:8px;">点击右上角"提炼错题"开始</div></div>';
+            return;
+        }
+        let html = '';
+        reports.forEach(function(r, idx) {
+            const date = new Date(r.created_at);
+            const timeStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0') + ' ' +
+                String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+            html += '<div class="report-card" onclick="openExtractReport(' + idx + ')">' +
+                '<div style="display:flex;align-items:center;justify-content:space-between;">' +
+                '<div>' +
+                '<div style="font-size:15px;font-weight:600;color:#1e293b;">错题提炼 #' + (idx + 1) + '</div>' +
+                '<div style="font-size:13px;color:#94a3b8;margin-top:4px;">' + timeStr + ' · ' + r.wrong_count + ' 道错题</div>' +
+                '</div>' +
+                '<span style="color:#94a3b8;font-size:20px;">&rsaquo;</span>' +
+                '</div></div>';
+        });
+        listEl.innerHTML = html;
+    }
+
+    window.startExtractWrong = function() {
+        if (WRONG_QUESTIONS.length === 0) { showToast('暂无错题可提炼'); return; }
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">AI提炼错题</div>' +
+            '<div style="font-size:28px;font-weight:800;color:#8b5cf6;margin-bottom:16px;">&yen;9.9 <span style="font-size:14px;font-weight:400;color:#94a3b8;">/ 次</span></div>' +
+            '<div style="font-size:13px;color:#64748b;margin-bottom:8px;">将基于 ' + WRONG_QUESTIONS.length + ' 道错题生成知识归纳</div>' +
+            '<div style="font-size:13px;color:#64748b;margin-bottom:20px;">测试版自动核销，无需支付</div>' +
+            '<div style="display:flex;gap:12px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
+            '<button onclick="confirmExtractWrong()" style="flex:1;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;font-size:15px;font-weight:600;cursor:pointer;">开始提炼</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmExtractWrong = async function() {
+        closeModal();
+        showToast('正在提炼中...');
+        try {
+            const res = await api('/ai/extract', { method: 'POST', body: { type: 'wrong' } });
+            EXTRACT_REPORTS.unshift(res);
+            AppState.set('extractReports', EXTRACT_REPORTS);
+            await loadUserData();
+            showToast('提炼完成！');
+            renderExtractWrongList();
+            updateProfile();
+        } catch (e) {
+            showToast('提炼失败：' + e.message);
+        }
+    };
+
+    window.openExtractReport = function(idx) {
+        const reports = EXTRACT_REPORTS.filter(function(r) { return r.type === 'wrong'; });
+        const report = reports[idx];
+        if (!report) return;
+        if (!report.content) {
+            document.getElementById('extractReportContent').innerHTML = '<div class="card" style="text-align:center;padding:40px;"><div style="font-size:16px;font-weight:600;color:#ef4444;">报告内容为空</div><div style="font-size:13px;color:#94a3b8;margin-top:8px;">可能生成失败，请重新提炼</div></div>';
+            document.getElementById('extractReportPage').style.display = 'block';
+            return;
+        }
+        let html = '';
+        if (typeof marked !== 'undefined') html = marked.parse(report.content);
+        else html = '<pre style="white-space:pre-wrap;font-size:14px;line-height:1.7;">' + report.content + '</pre>';
+        document.getElementById('extractReportContent').innerHTML = '<div class="card markdown-body">' + html + '</div>';
+        document.getElementById('extractReportPage').style.display = 'block';
+    };
+
+    window.closeExtractReport = function() {
+        document.getElementById('extractReportPage').style.display = 'none';
+    };
+
+    // ===== Profile =====
+    function updateProfile() {
+        const user = CURRENT_USER;
+        if (!user) return;
+        document.getElementById('profileUsername').textContent = user.username;
+        document.getElementById('profileInviteCode').textContent = '邀请码: ' + (user.inviteCode || '--');
+        const stats = AppState.get('userStats');
+        document.getElementById('statTotal').textContent = stats.totalAnswered;
+        document.getElementById('statCorrect').textContent = stats.totalCorrect;
+        const rate = stats.totalAnswered > 0 ? Math.round(stats.totalCorrect / stats.totalAnswered * 100) : 0;
+        document.getElementById('statRate').textContent = rate + '%';
+
+        const purchases = AppState.get('purchases');
+        document.getElementById('purchaseWrongStatus').textContent = purchases.wrong_collection ? '已解锁' : '未解锁';
+        document.getElementById('purchaseWrongStatus').className = 'badge ' + (purchases.wrong_collection ? 'badge-green' : 'badge-orange');
+        document.getElementById('purchaseAllStatus').textContent = purchases.knowledge_all ? '已解锁' : '未解锁';
+        document.getElementById('purchaseAllStatus').className = 'badge ' + (purchases.knowledge_all ? 'badge-green' : 'badge-orange');
+        document.getElementById('purchaseExtractCount').textContent = (purchases.ai_extract_count || 0) + ' 次';
+
+        const inviteInfo = AppState.get('inviteInfo') || { invitees: [], rewards: [] };
+        const invitees = inviteInfo.invitees || [];
+        const rewards = inviteInfo.rewards || [];
+        document.getElementById('inviteCount').textContent = invitees.length;
+        document.getElementById('rewardCount').textContent = rewards.length;
+
+        const inviteeListEl = document.getElementById('inviteeList');
+        const inviteeListSection = document.getElementById('inviteeListSection');
+        if (invitees.length > 0) {
+            inviteeListSection.style.display = 'block';
+            let inviteeHtml = '';
+            invitees.forEach(function(inv) {
+                const paidBadge = inv.hasPurchased
+                  ? '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#dcfce7;color:#16a34a;">已付费</span>'
+                  : '<span style="display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;background:#f1f5f9;color:#94a3b8;">未付费</span>';
+                const purchaseInfo = inv.purchaseItems && inv.purchaseItems.length > 0 ? inv.purchaseItems.join(', ') : '--';
+                inviteeHtml += '<div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">' +
+                  '<div><div style="font-size:14px;font-weight:600;color:#1e293b;">' + inv.username + '</div>' +
+                  '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">注册时间: ' + inv.registerTime + '</div></div>' +
+                  '<div style="text-align:right;">' + paidBadge +
+                  '<div style="font-size:12px;color:#64748b;margin-top:4px;">' + purchaseInfo + '</div></div></div>';
+            });
+            inviteeListEl.innerHTML = inviteeHtml;
+        } else {
+            inviteeListSection.style.display = 'none';
+        }
+
+        const rewardListEl = document.getElementById('rewardList');
+        const rewardListSection = document.getElementById('rewardListSection');
+        if (rewards.length > 0) {
+            rewardListSection.style.display = 'block';
+            let rewardHtml = '';
+            rewards.forEach(function(rw) {
+                const typeMap = { 'wrong_collection': '错题集免费', 'knowledge_all': '提炼全集免费', 'ai_extract': '提炼错题+1次' };
+                rewardHtml += '<div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">' +
+                  '<div><div style="font-size:14px;font-weight:600;color:#22c55e;">' + (typeMap[rw.type] || rw.type) + '</div>' +
+                  '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">来源: ' + rw.source + '</div></div>' +
+                  '<div style="font-size:12px;color:#94a3b8;">' + rw.obtainedAt + '</div></div>';
+            });
+            rewardListEl.innerHTML = rewardHtml;
+        } else {
+            rewardListSection.style.display = 'none';
+        }
+    }
+
+    // ===== Share =====
+    window.showInviteModal = function() { showShareModal(); };
+
+    window.showShareModal = function() {
+        const inviteCode = CURRENT_USER ? CURRENT_USER.inviteCode : '';
+        const shareText = '我用独家题库刷人工智能训练师，AI解析太强了，做一题会一类。你也来试试？';
+        const shareLink = window.location.href.split('?')[0] + (inviteCode ? '?invite=' + inviteCode : '');
+        showModal(
+            '<div style="text-align:center;">' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:12px;">分享给好友</div>' +
+            '<div style="background:#f8fafc;border-radius:10px;padding:14px;margin-bottom:16px;font-size:14px;line-height:1.6;color:#475569;text-align:left;">' + shareText + '</div>' +
+            '<div style="background:#f8fafc;border-radius:10px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#94a3b8;word-break:break-all;text-align:left;">' + shareLink + '</div>' +
+            '<button onclick="copyShareText()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;font-size:15px;font-weight:600;cursor:pointer;">复制文案和链接</button>' +
+            '</div>'
+        );
+    };
+
+    window.copyShareText = function() {
+        const inviteCode = CURRENT_USER ? CURRENT_USER.inviteCode : '';
+        const shareText = '我用独家题库刷人工智能训练师，AI解析太强了，做一题会一类。你也来试试？';
+        const shareLink = window.location.href.split('?')[0] + (inviteCode ? '?invite=' + inviteCode : '');
+        const fullText = shareText + '\n' + shareLink;
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(fullText).then(function() { showToast('已复制到剪贴板'); closeModal(); }).catch(function() { fallbackCopy(fullText); });
+        } else { fallbackCopy(fullText); }
+    };
+
+    function fallbackCopy(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+            document.execCommand('copy');
+            showToast('已复制到剪贴板');
+            closeModal();
+        } catch(e) { showToast('复制失败，请手动复制'); }
+        document.body.removeChild(textarea);
+    }
+
+    // ===== Change Password =====
+    window.showChangePasswordModal = function() {
+        showModal(
+            '<div>' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:16px;text-align:center;">修改密码</div>' +
+            '<div style="margin-bottom:12px;"><input type="password" id="oldPassword" class="login-input" placeholder="当前密码"></div>' +
+            '<div style="margin-bottom:12px;"><input type="password" id="newPassword" class="login-input" placeholder="新密码"></div>' +
+            '<div style="margin-bottom:16px;"><input type="password" id="newPassword2" class="login-input" placeholder="确认新密码"></div>' +
+            '<button onclick="confirmChangePassword()" style="width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#3b82f6,#2563eb);color:white;font-size:15px;font-weight:600;cursor:pointer;">确认修改</button>' +
+            '</div>'
+        );
+    };
+
+    window.confirmChangePassword = async function() {
+        const oldPwd = document.getElementById('oldPassword').value;
+        const newPwd = document.getElementById('newPassword').value;
+        const newPwd2 = document.getElementById('newPassword2').value;
+        if (!oldPwd || !newPwd || !newPwd2) { showToast('请填写完整'); return; }
+        if (newPwd.length < 4) { showToast('新密码至少4位'); return; }
+        if (newPwd !== newPwd2) { showToast('两次密码不一致'); return; }
+        try {
+            await api('/auth/change-password', { method: 'POST', body: { oldPassword: oldPwd, newPassword: newPwd, confirmPassword: newPwd2 } });
+            closeModal();
+            showToast('密码修改成功');
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    // ===== Init =====
+    async function init() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const inviteParam = urlParams.get('invite');
+
+        if (TOKEN) {
+            try {
+                const me = await api('/auth/me');
+                setToken(TOKEN, me);
+                await loadUserData();
+                showMainApp();
+            } catch (e) {
+                console.error('Auto login failed', e);
+                setToken('', null);
+                document.getElementById('loginPage').style.display = 'block';
+                document.getElementById('mainApp').style.display = 'none';
+            }
+        } else {
+            document.getElementById('loginPage').style.display = 'block';
+            document.getElementById('mainApp').style.display = 'none';
+        }
+
+        if (inviteParam && document.getElementById('regInviteCode')) {
+            document.getElementById('regInviteCode').value = inviteParam;
+            showRegister();
+        }
+    }
+
+    window.AppState = AppState;
+    init();
+})();
 </script>
-</body>
-</html>
+
+

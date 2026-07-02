@@ -9,7 +9,10 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - DB_PATH=/app/data/du-tiku.db
-      - JWT_SECRET=${JWT_SECRET:-dujia-tiku-v1-local}
+      - JWT_SECRET=${JWT_SECRET:-dujia-tiku-v11-local}
+      - AI_ENDPOINT=${AI_ENDPOINT:-https://api.deepseek.com/v1/chat/completions}
+      - AI_API_KEY=${AI_API_KEY}
+      - AI_MODEL=${AI_MODEL:-deepseek-chat}
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs

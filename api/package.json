@@ -1,10 +1,11 @@
 {
   "name": "dujia-tiku-api",
   "version": "1.0.0",
-  "description": "独家题库 V1.0 后端 API",
+  "description": "独家题库后端 API",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -13,6 +14,7 @@
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2",
     "sqlite3": "^5.1.7",
-    "sqlite": "^5.1.1"
+    "sqlite": "^5.1.1",
+    "uuid": "^10.0.0"
   }
 }
