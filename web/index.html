@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <title>独家题库 - 刷题利器</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
@@ -21,7 +24,7 @@
     </script>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f4f8; margin: 0; padding: 0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif; background: #f0f4f8; margin: 0; padding: 0; -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; -webkit-touch-callout: none; }
         .page-container { max-width: 480px; margin: 0 auto; min-height: 100vh; background: #f8fafc; position: relative; box-shadow: 0 0 20px rgba(0,0,0,0.08); }
         .tab-page { display: none; padding-bottom: 160px; }
         .tab-page.active { display: block; }
@@ -160,6 +163,10 @@
                     <div class="progress-fill" id="progressFill" style="background:linear-gradient(90deg,#fbbf24,#f59e0b);width:0%;"></div>
                 </div>
                 <div style="font-size:13px;opacity:0.8;margin-top:6px;" id="progressText">0 / 0</div>
+            </div>
+            <div class="sub-tab-bar" id="questionFilterTabs" style="margin-top:12px;margin-bottom:0;">
+                <div class="sub-tab active" data-filter="all" onclick="switchQuestionFilter('all')">查看全部</div>
+                <div class="sub-tab" data-filter="unanswered" onclick="switchQuestionFilter('unanswered')">只看未做</div>
             </div>
             <div id="questionCard" class="card fade-in" style="margin-top:12px;">
                 <!-- Question content rendered by JS -->
@@ -343,6 +350,59 @@
 (function() {
     'use strict';
 
+
+    // ===== Anti-copy / Anti-scrape =====
+    (function() {
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        document.addEventListener('copy', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        document.addEventListener('cut', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        document.addEventListener('keydown', function(e) {
+            const key = e.key || e.keyCode;
+            if (key === 'F12' || key === 123) {
+                e.preventDefault();
+                return false;
+            }
+            if ((e.ctrlKey || e.metaKey) && (key === 'u' || key === 'U' || key === 's' || key === 'S' || key === 'c' || key === 'C' || key === 'a' || key === 'A' || key === 'p' || key === 'P')) {
+                e.preventDefault();
+                return false;
+            }
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (key === 'I' || key === 'i' || key === 'J' || key === 'j' || key === 'C' || key === 'c')) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) {
+                e.preventDefault();
+            }
+        }, { passive: false });
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    })();
+
     window.onerror = function(msg, url, line, col, err) {
         console.error('[GLOBAL_ERROR]', msg, 'line:', line, 'col:', col, 'stack:', err && err.stack);
         if (window.showToast) window.showToast('JS错误: ' + msg + ' (line ' + line + ')');
@@ -359,6 +419,8 @@
     let INVITE_INFO = { invitees: [], rewards: [] };
     let currentQuestionIndex = 0;
     let currentExtractTab = 'all';
+    let currentQuestionFilter = 'all'; // 'all' | 'unanswered'
+    let lastAnsweredQuestionId = null; // keep last answered question visible in unanswered filter
 
     const TYPE_COLORS = {
         '单选题': { bg: '#dbeafe', color: '#1d4ed8' },
@@ -588,12 +650,14 @@
     }
 
     function renderQuestion() {
-        if (!QUESTIONS || !QUESTIONS.length) {
+        const filteredQuestions = getFilteredQuestions();
+        if (!filteredQuestions || !filteredQuestions.length) {
             document.getElementById('questionCard').innerHTML =
                 '<div style="text-align:center;padding:40px;color:#94a3b8;">' +
                 '<div style="font-size:48px;margin-bottom:12px;">&#x1F4DA;</div>' +
                 '<div>题库加载中或暂无题目</div>' +
-                '<div style="font-size:13px;margin-top:8px;">请稍候或刷新页面</div></div>';
+                (currentQuestionFilter === 'unanswered' ? '<div style="font-size:13px;margin-top:8px;">恭喜，你已经做完所有题目</div>' : '<div style="font-size:13px;margin-top:8px;">请稍候或刷新页面</div>') +
+                '</div>';
             document.getElementById('progressText').textContent = '0 / 0';
             document.getElementById('progressFill').style.width = '0%';
             return;
@@ -601,11 +665,23 @@
 
         const total = getTotalQuestions();
         const answered = getAnsweredCount();
-        const pct = total > 0 ? (answered / total * 100) : 0;
-        document.getElementById('progressFill').style.width = pct + '%';
-        document.getElementById('progressText').textContent = answered + ' / ' + total;
+        const unanswered = total - answered;
+        if (currentQuestionFilter === 'unanswered') {
+            const pct = total > 0 ? (unanswered / total * 100) : 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = unanswered + '（未做）/ ' + total;
+        } else {
+            const pct = total > 0 ? (answered / total * 100) : 0;
+            document.getElementById('progressFill').style.width = pct + '%';
+            document.getElementById('progressText').textContent = answered + ' / ' + total;
+        }
 
-        const q = QUESTIONS[currentQuestionIndex];
+        const q = filteredQuestions[currentQuestionIndex];
+        if (!q) {
+            currentQuestionIndex = 0;
+            renderQuestion();
+            return;
+        }
         const userAnswer = getUserAnswer(q.id);
         const hasAnswered = userAnswer !== undefined;
 
@@ -661,7 +737,7 @@
                     const vOpts = v.options || {};
                     Object.keys(vOpts).forEach(function(letter2) {
                         const optText2 = vOpts[letter2];
-                        analysisHtml += '<button class="variant-option-btn" data-vi="' + vi + '" data-letter="' + letter2 + '" data-correct="' + (letter2 === v.answer ? '1' : '0') + '" onclick="selectVariant(this,' + vi + ')">' +
+                        analysisHtml += '<button class="variant-option-btn" data-vi="' + vi + '" data-letter="' + letter2 + '" data-correct="' + (letter2 === v.answer ? '1' : '0') + '" onclick="selectVariant(this,' + q.id + ',' + vi + ')">' +
                             '<span style="font-weight:600;color:#64748b;margin-right:6px;">' + letter2 + '.</span>' + optText2 + '</button>';
                     });
                     analysisHtml += '</div>' +
@@ -678,7 +754,7 @@
             '<div class="fade-in">' +
             '<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">' +
             '<span class="type-tag" style="background:' + typeColor.bg + ';color:' + typeColor.color + ';">' + (q.type || '单选题') + '</span>' +
-            '<span style="font-size:13px;color:#94a3b8;">第 ' + (currentQuestionIndex + 1) + ' 题</span></div>' +
+            '<span style="font-size:13px;color:#94a3b8;">第 ' + (QUESTIONS.findIndex(function(item) { return item.id === q.id; }) + 1) + ' 题</span></div>' +
             '<div style="font-size:16px;line-height:1.7;color:#1e293b;font-weight:500;margin-bottom:16px;">' + (q.stem || '') + '</div>' +
             options +
             analysisHtml +
@@ -692,15 +768,52 @@
         }
 
         // Update nav buttons
-        document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+        const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
+        const isUnansweredMode = currentQuestionFilter === 'unanswered';
+        const currentAnswered = ANSWERS[q.id] !== undefined;
+        if (isUnansweredMode) {
+            prevBtn.style.display = 'none';
+            nextBtn.style.flex = '1';
+            nextBtn.style.marginLeft = '0';
+        } else {
+            prevBtn.style.display = 'block';
+            nextBtn.style.flex = '1';
+            nextBtn.style.marginLeft = '12px';
+            prevBtn.disabled = currentQuestionIndex === 0;
+        }
         if (currentQuestionIndex >= total - 1) {
             nextBtn.textContent = '完成';
-            nextBtn.disabled = false;
+            nextBtn.disabled = isUnansweredMode && !currentAnswered;
         } else {
             nextBtn.textContent = '下一题';
-            nextBtn.disabled = false;
+            nextBtn.disabled = isUnansweredMode && !currentAnswered;
         }
+    }
+
+    function playSound(isCorrect) {
+        try {
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            if (isCorrect) {
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.15);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.15);
+            } else {
+                osc.frequency.value = 220;
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.2);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.2);
+            }
+        } catch (e) {}
     }
 
     window.resetAllAnswers = function() {
@@ -708,7 +821,7 @@
             '<div style="text-align:center;">' +
             '<div style="font-size:40px;margin-bottom:12px;">&#x26A0;&#xFE0F;</div>' +
             '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">确认重置？</div>' +
-            '<div style="font-size:14px;color:#64748b;margin-bottom:20px;">将清空所有答题记录和统计数据<br>（错题集不会被清空）</div>' +
+            '<div style="font-size:14px;color:#64748b;margin-bottom:20px;">将清空所有答题记录和统计数据<br>效果等同于初始化做题记录，全部题目恢复为未做状态<br>（错题集不会被清空）</div>' +
             '<div style="display:flex;gap:12px;">' +
             '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
             '<button onclick="confirmReset()" style="flex:1;padding:12px;border-radius:10px;border:none;background:#ef4444;color:white;font-size:15px;font-weight:600;cursor:pointer;">确认重置</button>' +
@@ -784,6 +897,14 @@
             }
         });
 
+        // Play sound feedback
+        playSound(isCorrect);
+
+        // In unanswered mode, keep current question visible after answering
+        if (currentQuestionFilter === 'unanswered') {
+            lastAnsweredQuestionId = qId;
+        }
+
         // Sync to backend and re-render with analysis after animation
         postAnswerQuietly(qId, letter, isCorrect);
         setTimeout(function() {
@@ -791,8 +912,9 @@
         }, 500);
     };
 
-    window.selectVariant = function(btn, vi) {
-        const q = QUESTIONS[currentQuestionIndex];
+    window.selectVariant = function(btn, qId, vi) {
+        const q = QUESTIONS.find(function(item) { return item.id === Number(qId); });
+        if (!q || !q.variants) return;
         const variant = q.variants[vi];
         const options = btn.parentElement.querySelectorAll('.variant-option-btn');
         options.forEach(function(o) { o.style.pointerEvents = 'none'; });
@@ -813,6 +935,9 @@
             });
         }
 
+        // Play sound feedback for variant
+        playSound(selectedLetter === variant.answer);
+
         const analysisEl = document.getElementById('variant_' + vi + '_analysis');
         if (variant.analysis) {
             analysisEl.textContent = variant.analysis;
@@ -825,6 +950,7 @@
     };
 
     window.prevQuestion = function() {
+        if (currentQuestionFilter === 'unanswered') return;
         if (currentQuestionIndex > 0) {
             currentQuestionIndex--;
             renderQuestion();
@@ -833,6 +959,27 @@
     };
 
     window.nextQuestion = function() {
+        if (currentQuestionFilter === 'unanswered') {
+            const unanswered = QUESTIONS.filter(function(q) { return ANSWERS[q.id] === undefined; });
+            if (lastAnsweredQuestionId) {
+                // Currently viewing the last answered question (inserted at index 0).
+                // Move to the first real unanswered question.
+                lastAnsweredQuestionId = null;
+                currentQuestionIndex = 0;
+                renderQuestion();
+                window.scrollTo(0, 0);
+                return;
+            }
+            if (currentQuestionIndex < unanswered.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+                window.scrollTo(0, 0);
+            } else {
+                showToast('已完成所有未做题！');
+            }
+            return;
+        }
+
         const total = getTotalQuestions();
         if (currentQuestionIndex < total - 1) {
             currentQuestionIndex++;
@@ -842,6 +989,31 @@
             showToast('已完成全部题目！');
         }
     };
+
+    window.switchQuestionFilter = function(filter) {
+        if (filter !== 'all' && filter !== 'unanswered') return;
+        currentQuestionFilter = filter;
+        lastAnsweredQuestionId = null;
+        document.querySelectorAll('#questionFilterTabs .sub-tab').forEach(function(t) {
+            t.classList.toggle('active', t.dataset.filter === filter);
+        });
+        currentQuestionIndex = 0;
+        renderQuestion();
+    };
+
+    function getFilteredQuestions() {
+        if (currentQuestionFilter === 'unanswered') {
+            const unanswered = QUESTIONS.filter(function(q) { return ANSWERS[q.id] === undefined; });
+            if (lastAnsweredQuestionId) {
+                const lastQ = QUESTIONS.find(function(q) { return q.id === lastAnsweredQuestionId; });
+                if (lastQ && !unanswered.find(function(q) { return q.id === lastAnsweredQuestionId; })) {
+                    return [lastQ].concat(unanswered);
+                }
+            }
+            return unanswered;
+        }
+        return QUESTIONS;
+    }
 
     // ===== Wrong Questions =====
     function renderWrongList() {

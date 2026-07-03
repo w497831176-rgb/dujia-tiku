@@ -6,7 +6,9 @@ const router = express.Router();
 
 const AI_ENDPOINT = process.env.AI_ENDPOINT || 'https://api.deepseek.com/v1/chat/completions';
 const AI_API_KEY = process.env.AI_API_KEY || '';
-const AI_MODEL = process.env.AI_MODEL || 'deepseek-chat';
+const AI_MODEL = process.env.AI_MODEL || 'deepseek-v4-pro';
+const AI_THINKING = process.env.AI_THINKING !== 'disabled';
+const AI_REASONING_EFFORT = process.env.AI_REASONING_EFFORT === 'max' ? 'max' : 'high';
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -96,7 +98,8 @@ router.post('/extract', auth, async (req, res) => {
       },
       body: JSON.stringify({
         model: AI_MODEL,
-        temperature: 0,
+        thinking: { type: AI_THINKING ? 'enabled' : 'disabled' },
+        reasoning_effort: AI_REASONING_EFFORT,
         messages: [
           { role: 'system', content: '你是一位人工智能训练师三级考试辅导专家。' },
           { role: 'user', content: buildPrompt(questions, type) }
