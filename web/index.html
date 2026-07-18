@@ -91,7 +91,7 @@
         .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
         .modal-box { background: white; border-radius: 16px; width: 90%; max-width: 400px; padding: 24px; animation: slideUp 0.3s ease; }
         .toast { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.75); color: white; padding: 12px 24px; border-radius: 10px; z-index: 300; font-size: 14px; animation: fadeIn 0.2s; pointer-events: none; }
-        .markdown-body { word-wrap: break-word; overflow-wrap: break-word; }
+        .markdown-body { word-wrap: break-word; overflow-wrap: break-word; overflow-x:auto; -webkit-overflow-scrolling:touch; }
         .markdown-body h1,.markdown-body h2,.markdown-body h3 { font-weight:700; margin:16px 0 8px; }
         .markdown-body h1{font-size:20px} .markdown-body h2{font-size:18px} .markdown-body h3{font-size:16px}
         .markdown-body p{margin:8px 0;line-height:1.7} .markdown-body ul,.markdown-body ol{padding-left:20px;margin:8px 0}
@@ -99,13 +99,23 @@
         .markdown-body code{background:#f1f5f9;padding:2px 6px;border-radius:4px;font-size:13px;word-break:break-word}
         .markdown-body pre{background:#f8fafc;padding:12px;border-radius:8px;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
         .markdown-body blockquote{border-left:3px solid #3b82f6;padding-left:12px;color:#64748b;margin:8px 0}
-        .markdown-body table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0;table-layout:fixed}
+        .markdown-body table{width:max-content;min-width:720px;max-width:none;border-collapse:collapse;font-size:14px;margin:12px 0;table-layout:auto}
         .markdown-body thead{background:#eff6ff}
-        .markdown-body th{padding:10px 8px;border:1px solid #e2e8f0;text-align:left;font-weight:600;color:#1e40af;font-size:13px;word-break:break-word}
-        .markdown-body td{padding:8px;border:1px solid #e2e8f0;line-height:1.6;word-break:break-word;overflow-wrap:break-word;vertical-align:top}
+        .markdown-body th{padding:10px 8px;border:1px solid #e2e8f0;text-align:left;font-weight:600;color:#1e40af;font-size:13px;white-space:nowrap}
+        .markdown-body td{padding:8px;border:1px solid #e2e8f0;line-height:1.6;word-break:normal;overflow-wrap:normal;vertical-align:top}
         .markdown-body tr:nth-child(even){background:#f8fafc}
         .markdown-body hr{border:none;border-top:1px solid #e2e8f0;margin:20px 0}
         .type-tag { display: inline-block; padding: 3px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        @media (min-width: 768px) {
+            .page-container { max-width: min(1180px, calc(100vw - 48px)); }
+            .bottom-tab-bar, .float-btn-bar, #wrongPayOverlay, #extractAllPayOverlay { max-width: min(1180px, calc(100vw - 48px)) !important; }
+            .card, .report-card, .sub-tab-bar, .stat-card { margin-left: 24px; margin-right: 24px; }
+            #extractReportContent, #wrongDetailContent { max-width: 1180px; margin: 0 auto; }
+            .markdown-body table { min-width: 760px; }
+        }
+        @media (min-width: 1024px) {
+            .markdown-body table { min-width: 920px; }
+        }
     </style>
 </head>
 <body>
@@ -211,8 +221,9 @@
                 <div style="font-size:13px;opacity:0.8;margin-top:4px;">知识点深度归纳</div>
             </div>
             <div class="sub-tab-bar" id="extractSubTabs">
-                <div class="sub-tab active" data-tab="all" onclick="switchExtractTab('all')">提炼全集</div>
-                <div class="sub-tab" data-tab="wrong" onclick="switchExtractTab('wrong')">提炼错题</div>
+                <div class="sub-tab active" data-tab="all" onclick="switchExtractTab('all')">AI提炼全集</div>
+                <div class="sub-tab" data-tab="wrong" onclick="switchExtractTab('wrong')">AI提炼错题</div>
+                <div class="sub-tab" data-tab="diagnosis" onclick="switchExtractTab('diagnosis')">AI诊断错题</div>
             </div>
             <!-- Extract All -->
             <div id="extractAllPage">
@@ -222,16 +233,20 @@
                         <div style="font-size:13px;color:#64748b;margin-bottom:8px;">查看全部提炼内容需要解锁</div>
                         <div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>
                         <div style="text-align:center;margin-top:6px;"><a href="javascript:void(0)" onclick="switchTab('pageProfile');showInviteModal()" style="font-size:13px;color:#2563eb;text-decoration:underline;cursor:pointer;">去邀请好友 &rarr;</a></div>
-                        <button class="pay-btn" onclick="purchaseKnowledgeAll()" style="margin-top:12px;">&#x1F512; 付费解锁提炼全集 - &yen;99.9</button>
+                        <button class="pay-btn" onclick="purchaseKnowledgeAll()" style="margin-top:12px;">&#x1F512; 付费解锁AI提炼全集 - &yen;99.9</button>
                     </div>
                 </div>
             </div>
             <!-- Extract Wrong -->
             <div id="extractWrongPage" style="display:none;">
                 <div style="padding:0 16px;display:flex;justify-content:flex-end;margin-bottom:8px;">
-                    <button onclick="startExtractWrong()" style="padding:8px 18px;border-radius:10px;font-size:14px;font-weight:600;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,0.3);">&#x2728; 提炼错题</button>
+                    <button onclick="startExtractWrong()" style="padding:8px 18px;border-radius:10px;font-size:14px;font-weight:600;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,0.3);">&#x2728; AI提炼错题</button>
                 </div>
                 <div id="extractWrongList"></div>
+            </div>
+            <!-- AI Diagnosis -->
+            <div id="extractDiagnosisPage" style="display:none;">
+                <div id="diagnosisContent"></div>
             </div>
             <!-- Extract Report Detail -->
             <div id="extractReportPage" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:#f8fafc;z-index:60;overflow-y:auto;">
@@ -245,6 +260,7 @@
 
         <!-- Tab: Profile -->
         <div id="pageProfile" class="tab-page">
+            <div style="margin:12px 16px 0;padding:6px 10px;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:800;text-align:center;">V1.4</div>
             <div style="padding:24px 16px;background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:white;">
                 <div style="font-size:22px;font-weight:700;" id="profileUsername">用户</div>
                 <div style="font-size:13px;opacity:0.8;margin-top:4px;" id="profileInviteCode">邀请码: --</div>
@@ -270,11 +286,11 @@
                     <span id="purchaseWrongStatus" class="badge badge-orange">未解锁</span>
                 </div>
                 <div class="profile-item" onclick="purchaseKnowledgeAll()">
-                    <span>提炼全集</span>
+                    <span>AI提炼全集</span>
                     <span id="purchaseAllStatus" class="badge badge-orange">未解锁</span>
                 </div>
                 <div class="profile-item">
-                    <span>提炼错题次数</span>
+                    <span>AI提炼错题次数</span>
                     <span id="purchaseExtractCount" class="badge badge-blue">0 次</span>
                 </div>
             </div>
@@ -416,6 +432,8 @@
     let PURCHASES = { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
     let WRONG_QUESTIONS = [];
     let EXTRACT_REPORTS = [];
+    let AI_DIAGNOSIS_REPORTS = [];
+    let STATIC_EXTRACT_ALL_MARKDOWN = null;
     let INVITE_INFO = { invitees: [], rewards: [] };
     let currentQuestionIndex = 0;
     let currentExtractTab = 'all';
@@ -438,7 +456,12 @@
             opts.body = JSON.stringify(opts.body);
             opts.headers['Content-Type'] = 'application/json';
         }
-        const resp = await fetch(API_BASE + path, opts);
+        let resp;
+        try {
+            resp = await fetch(API_BASE + path, opts);
+        } catch (e) {
+            throw new Error('网络连接失败，请检查服务是否可用后重试');
+        }
         const data = await resp.json().catch(() => ({}));
         if (!resp.ok) throw new Error(data.error || ('请求失败 ' + resp.status));
         return data;
@@ -453,6 +476,11 @@
                     return loadUserData().then(function() {
                         if (currentExtractTab === 'wrong') renderExtractWrongList();
                     });
+                } else {
+                    const wrongs = AppState.get('wrongQuestions').filter(function(w) { return Number(w.id) !== Number(qId); });
+                    AppState.set('wrongQuestions', wrongs);
+                    if (document.getElementById('pageWrong').classList.contains('active')) renderWrongList();
+                    if (currentExtractTab === 'wrong') renderExtractWrongList();
                 }
             })
             .catch(function(e) { console.error('post answer error', e); });
@@ -468,6 +496,7 @@
             userStats: { totalAnswered: 0, totalCorrect: 0 },
             purchases: { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 },
             extractReports: [],
+            aiDiagnosisReports: [],
             inviteInfo: { inviterCode: '', invitees: [], rewards: [] }
         },
         init() {},
@@ -478,6 +507,7 @@
             if (key === 'wrongQuestions') return WRONG_QUESTIONS;
             if (key === 'purchases') return PURCHASES;
             if (key === 'extractReports') return EXTRACT_REPORTS;
+            if (key === 'aiDiagnosisReports') return AI_DIAGNOSIS_REPORTS;
             if (key === 'inviteInfo') return INVITE_INFO;
             if (key === 'isLoggedIn') return !!TOKEN;
             if (key === 'userStats') return this._data.userStats;
@@ -488,6 +518,7 @@
             if (key === 'wrongQuestions') WRONG_QUESTIONS = value;
             if (key === 'purchases') PURCHASES = value;
             if (key === 'extractReports') EXTRACT_REPORTS = value;
+            if (key === 'aiDiagnosisReports') AI_DIAGNOSIS_REPORTS = value;
             if (key === 'inviteInfo') INVITE_INFO = value;
             if (key === 'userStats') this._data.userStats = value;
             this._data[key] = value;
@@ -502,12 +533,13 @@
     }
 
     async function loadUserData() {
-        const [qRes, aRes, pRes, wRes, rRes, iRes] = await Promise.all([
+        const [qRes, aRes, pRes, wRes, rRes, dRes, iRes] = await Promise.all([
             api('/questions/'),
             api('/answers/'),
             api('/purchases/'),
             api('/wrong/'),
             api('/ai/reports'),
+            api('/ai/diagnosis'),
             api('/invite/')
         ]);
         QUESTIONS = qRes.questions || [];
@@ -515,11 +547,13 @@
         PURCHASES = pRes || { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
         WRONG_QUESTIONS = wRes.wrongQuestions || [];
         EXTRACT_REPORTS = rRes.reports || [];
+        AI_DIAGNOSIS_REPORTS = dRes.reports || [];
         INVITE_INFO = iRes || { invitees: [], rewards: [] };
         AppState.set('answers', ANSWERS);
         AppState.set('wrongQuestions', WRONG_QUESTIONS);
         AppState.set('purchases', PURCHASES);
         AppState.set('extractReports', EXTRACT_REPORTS);
+        AppState.set('aiDiagnosisReports', AI_DIAGNOSIS_REPORTS);
         AppState.set('inviteInfo', INVITE_INFO);
         const total = Object.keys(ANSWERS).length;
         const correct = Object.values(ANSWERS).filter(function(a) {
@@ -610,6 +644,7 @@
         PURCHASES = { wrong_collection: false, knowledge_all: false, ai_extract_count: 0 };
         WRONG_QUESTIONS = [];
         EXTRACT_REPORTS = [];
+        AI_DIAGNOSIS_REPORTS = [];
         INVITE_INFO = { invitees: [], rewards: [] };
         document.getElementById('mainApp').style.display = 'none';
         document.getElementById('loginPage').style.display = 'block';
@@ -639,6 +674,11 @@
         const a = ANSWERS[qId];
         if (a === undefined) return undefined;
         return typeof a === 'object' ? a.selected : a;
+    }
+
+    function isUserAnswerCorrect(qId) {
+        const a = ANSWERS[qId];
+        return typeof a === 'object' && a.isCorrect === true;
     }
 
     function isAnswerCorrect(qId) {
@@ -1017,7 +1057,8 @@
 
     // ===== Wrong Questions =====
     function renderWrongList() {
-        const wrongs = AppState.get('wrongQuestions');
+        const wrongs = AppState.get('wrongQuestions').filter(function(w) { return !isUserAnswerCorrect(Number(w.id)); });
+        if (wrongs.length !== AppState.get('wrongQuestions').length) AppState.set('wrongQuestions', wrongs);
         const unlocked = AppState.get('purchases').wrong_collection;
         const sorted = wrongs.slice().sort(function(a, b) {
             return b.count - a.count || (a.id > b.id ? 1 : -1);
@@ -1107,6 +1148,14 @@
         if (!q) return;
 
         const userAnswer = getUserAnswer(qId);
+        if (isUserAnswerCorrect(qId)) {
+            api('/wrong/' + qId, { method: 'DELETE' }).catch(function(e) { console.error('delete resolved wrong error', e); });
+            const wrongs = AppState.get('wrongQuestions').filter(function(w) { return Number(w.id) !== qId; });
+            AppState.set('wrongQuestions', wrongs);
+            showToast('该题最近一次已答对，已移出错题集');
+            renderWrongList();
+            return;
+        }
 
         const typeColor = TYPE_COLORS[q.type] || { bg: '#f1f5f9', color: '#64748b' };
         let html = '<div class="card" style="margin:12px;">' +
@@ -1192,7 +1241,7 @@
         }
         showModal(
             '<div style="text-align:center;">' +
-            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">解锁提炼全集</div>' +
+            '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">解锁AI提炼全集</div>' +
             '<div style="font-size:28px;font-weight:800;color:#8b5cf6;margin-bottom:16px;">&yen;99.9</div>' +
             '<div style="font-size:13px;color:#64748b;margin-bottom:20px;">测试版自动核销，无需支付</div>' +
             '<div style="text-align:center;margin-top:12px;font-size:13px;color:#64748b;">&#x1F4A1; 邀请好友注册并购买，即可免费获得此权益！</div>' +
@@ -1225,14 +1274,17 @@
         });
         document.getElementById('extractAllPage').style.display = tab === 'all' ? 'block' : 'none';
         document.getElementById('extractWrongPage').style.display = tab === 'wrong' ? 'block' : 'none';
+        document.getElementById('extractDiagnosisPage').style.display = tab === 'diagnosis' ? 'block' : 'none';
         renderExtractPage();
     };
 
     function renderExtractPage() {
         if (currentExtractTab === 'all') {
             renderExtractAll();
-        } else {
+        } else if (currentExtractTab === 'wrong') {
             renderExtractWrongList();
+        } else {
+            renderDiagnosisPage();
         }
     }
 
@@ -1241,21 +1293,12 @@
         const contentEl = document.getElementById('extractAllContent');
 
         if (unlocked) {
-            const saved = EXTRACT_REPORTS.find(function(r) { return r.type === 'all'; });
-            if (saved && saved.content) {
-                let html = '';
-                if (typeof marked !== 'undefined') html = marked.parse(saved.content);
-                else html = '<pre style="white-space:pre-wrap;font-size:14px;line-height:1.7;">' + saved.content + '</pre>';
-                contentEl.innerHTML = '<div class="card markdown-body">' + html + '</div>';
-                document.getElementById('extractAllPayOverlay').style.display = 'none';
-                return;
-            }
             contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;">' +
-                '<div style="font-size:48px;margin-bottom:16px;">&#x2728;</div>' +
-                '<div style="font-size:16px;font-weight:600;color:#475569;">正在为您生成提炼全集...</div>' +
-                '<div style="font-size:13px;color:#94a3b8;margin-top:8px;">AI正在分析全部 ' + getTotalQuestions() + ' 道题目</div></div>';
+                '<div style="font-size:48px;margin-bottom:16px;">&#x1F4D6;</div>' +
+                '<div style="font-size:16px;font-weight:600;color:#475569;">正在加载AI提炼全集...</div>' +
+                '<div style="font-size:13px;color:#94a3b8;margin-top:8px;">已改为静态知识点文件，避免970题实时生成超时</div></div>';
             document.getElementById('extractAllPayOverlay').style.display = 'none';
-            generateExtractAll();
+            loadStaticExtractAll();
             return;
         }
 
@@ -1278,21 +1321,30 @@
         document.getElementById('extractAllPayOverlay').style.display = 'block';
     }
 
-    window.generateExtractAll = async function() {
+    async function loadStaticExtractAll() {
         const contentEl = document.getElementById('extractAllContent');
-        contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;"><div>生成中，请稍候...</div></div>';
         try {
-            const res = await api('/ai/extract', { method: 'POST', body: { type: 'all' } });
-            EXTRACT_REPORTS.unshift(res);
-            AppState.set('extractReports', EXTRACT_REPORTS);
-            await loadUserData();
-            renderExtractAll();
+            if (!STATIC_EXTRACT_ALL_MARKDOWN) {
+                const resp = await fetch('/ai-extract-all.md', { cache: 'no-cache' });
+                if (!resp.ok) throw new Error('静态文件读取失败 ' + resp.status);
+                STATIC_EXTRACT_ALL_MARKDOWN = await resp.text();
+            }
+            let html = '';
+            if (typeof marked !== 'undefined') html = marked.parse(STATIC_EXTRACT_ALL_MARKDOWN);
+            else html = '<pre style="white-space:pre-wrap;font-size:14px;line-height:1.7;">' + STATIC_EXTRACT_ALL_MARKDOWN + '</pre>';
+            contentEl.innerHTML = '<div class="card markdown-body">' + html + '</div>';
         } catch (e) {
             contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;">' +
-                '<div style="font-size:16px;font-weight:600;color:#ef4444;">生成失败</div>' +
+                '<div style="font-size:16px;font-weight:600;color:#ef4444;">AI提炼全集加载失败</div>' +
                 '<div style="font-size:13px;color:#94a3b8;margin-top:8px;">' + e.message + '</div>' +
-                '<button onclick="generateExtractAll()" style="margin-top:16px;padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;font-size:14px;font-weight:600;cursor:pointer;">重试</button></div>';
+                '<button onclick="loadStaticExtractAll()" style="margin-top:16px;padding:10px 24px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:white;font-size:14px;font-weight:600;cursor:pointer;">重试</button></div>';
         }
+    }
+
+    window.generateExtractAll = async function() {
+        const contentEl = document.getElementById('extractAllContent');
+        contentEl.innerHTML = '<div class="card" style="text-align:center;padding:40px;"><div>正在加载静态AI提炼全集...</div></div>';
+        loadStaticExtractAll();
     };
 
     function renderExtractWrongList() {
@@ -1303,14 +1355,12 @@
                 '<div style="text-align:center;padding:60px 20px;color:#94a3b8;">' +
                 '<div style="font-size:48px;margin-bottom:12px;">&#x1F4DD;</div>' +
                 '<div>暂无提炼报告</div>' +
-                '<div style="font-size:13px;margin-top:8px;">点击右上角"提炼错题"开始</div></div>';
+                '<div style="font-size:13px;margin-top:8px;">点击右上角"AI提炼错题"开始</div></div>';
             return;
         }
         let html = '';
         reports.forEach(function(r, idx) {
-            const date = new Date(r.created_at);
-            const timeStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0') + ' ' +
-                String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+            const timeStr = formatDateTime(r.created_at_shanghai || r.created_at);
             html += '<div class="report-card" onclick="openExtractReport(' + idx + ')">' +
                 '<div style="display:flex;align-items:center;justify-content:space-between;">' +
                 '<div>' +
@@ -1324,12 +1374,14 @@
     }
 
     window.startExtractWrong = function() {
-        if (WRONG_QUESTIONS.length === 0) { showToast('暂无错题可提炼'); return; }
+        const activeWrongs = WRONG_QUESTIONS.filter(function(w) { return !isUserAnswerCorrect(Number(w.id)); });
+        if (activeWrongs.length !== WRONG_QUESTIONS.length) AppState.set('wrongQuestions', activeWrongs);
+        if (activeWrongs.length === 0) { showToast('暂无错题可提炼'); renderWrongList(); return; }
         showModal(
             '<div style="text-align:center;">' +
             '<div style="font-size:18px;font-weight:700;margin-bottom:8px;">AI提炼错题</div>' +
             '<div style="font-size:28px;font-weight:800;color:#8b5cf6;margin-bottom:16px;">&yen;9.9 <span style="font-size:14px;font-weight:400;color:#94a3b8;">/ 次</span></div>' +
-            '<div style="font-size:13px;color:#64748b;margin-bottom:8px;">将基于 ' + WRONG_QUESTIONS.length + ' 道错题生成知识归纳</div>' +
+            '<div style="font-size:13px;color:#64748b;margin-bottom:8px;">将基于 ' + activeWrongs.length + ' 道错题生成知识归纳</div>' +
             '<div style="font-size:13px;color:#64748b;margin-bottom:20px;">测试版自动核销，无需支付</div>' +
             '<div style="display:flex;gap:12px;">' +
             '<button onclick="closeModal()" style="flex:1;padding:12px;border-radius:10px;border:1px solid #e2e8f0;background:white;font-size:15px;cursor:pointer;">取消</button>' +
@@ -1374,7 +1426,522 @@
         document.getElementById('extractReportPage').style.display = 'none';
     };
 
+    function formatDateTime(value) {
+        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}/.test(value)) {
+            return value.slice(0, 16);
+        }
+        const date = value ? new Date(value) : new Date();
+        return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' +
+            String(date.getDate()).padStart(2, '0') + ' ' +
+            String(date.getHours()).padStart(2, '0') + ':' + String(date.getMinutes()).padStart(2, '0');
+    }
+
+    function diagnosisTime(report) {
+        return formatDateTime(report.created_at_shanghai || report.created_at);
+    }
+
+    function diagnosisNo(report) {
+        return report.report_no || report.id || '';
+    }
+
+    function diagnosisCountText(report) {
+        const total = report.wrong_total || report.wrong_count || 0;
+        const analyzed = report.analyzed_count || report.wrong_count || 0;
+        if (total !== analyzed) return '错题总数 ' + total + ' · 本次分析 ' + analyzed + ' 道';
+        return '分析 ' + analyzed + ' 道错题';
+    }
+
+    function riskBadge(level) {
+        if (level === 'high') return '<span class="badge badge-orange">高风险</span>';
+        if (level === 'low') return '<span class="badge badge-green">低风险</span>';
+        return '<span class="badge badge-blue">中风险</span>';
+    }
+
+    function renderDiagnosisPage() {
+        const el = document.getElementById('diagnosisContent');
+        AI_DIAGNOSIS_REPORTS.sort(function(a, b) {
+            return (diagnosisNo(b) || 0) - (diagnosisNo(a) || 0);
+        });
+
+        let html = '<div style="padding:0 16px 12px;">' +
+            '<div class="card" style="background:linear-gradient(135deg,#eef2ff,#f5f3ff);border:1px solid #ddd6fe;">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">' +
+            '<div><div style="font-size:17px;font-weight:800;color:#312e81;">AI错题诊断</div>' +
+            '<div style="font-size:13px;color:#64748b;margin-top:4px;">基于错题记录生成薄弱点、错误类型和复习建议</div></div>' +
+            '<div style="font-size:32px;">&#x1F9E0;</div></div>' +
+            '<div style="display:flex;align-items:stretch;gap:8px;min-height:64px;">' +
+            '<div style="min-width:88px;background:white;border-radius:10px;padding:10px;text-align:center;display:flex;flex-direction:column;justify-content:center;"><div style="font-size:20px;font-weight:800;color:#ef4444;">' + WRONG_QUESTIONS.length + '</div><div style="font-size:12px;color:#94a3b8;">错题</div></div>' +
+            '<button onclick="generateDiagnosis()" style="flex:1;border-radius:12px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 3px 10px rgba(99,102,241,0.28);">&#x2728; 生成AI诊断报告</button>' +
+            '</div>' +
+            '</div></div>';
+
+        if (AI_DIAGNOSIS_REPORTS.length === 0) {
+            html += '<div style="text-align:center;padding:48px 20px;color:#94a3b8;">' +
+                '<div style="font-size:48px;margin-bottom:12px;">&#x1F4CA;</div>' +
+                '<div style="font-size:15px;color:#64748b;font-weight:600;">暂无诊断报告</div>' +
+                '<div style="font-size:13px;margin-top:8px;line-height:1.8;">先积累错题，再点击上方按钮生成你的学习诊断。</div></div>';
+            el.innerHTML = html;
+            return;
+        }
+
+        html += '<div style="padding:0 16px 24px;"><div style="font-size:13px;font-weight:700;color:#64748b;margin:12px 0 8px;">诊断报告</div>';
+        AI_DIAGNOSIS_REPORTS.forEach(function(report, idx) {
+            html += '<div class="report-card" onclick="showDiagnosisHistory(' + idx + ')" style="margin-bottom:10px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">' +
+                '<div><div style="font-size:14px;font-weight:700;color:#1e293b;">诊断报告 #' + diagnosisNo(report) + (idx === 0 ? ' <span style="font-size:11px;color:#4f46e5;background:#eef2ff;border-radius:10px;padding:2px 6px;">最新</span>' : '') + '</div>' +
+                '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">' + diagnosisTime(report) + ' · ' + diagnosisCountText(report) + '</div></div>' +
+                '<span style="color:#94a3b8;font-size:20px;">&rsaquo;</span></div></div>';
+        });
+        html += '</div>';
+
+        el.innerHTML = html;
+    }
+
+    function renderDiagnosisReport(report) {
+        const content = report.content || {};
+        const weakPoints = content.weak_points || [];
+        const errorTypes = content.error_types || [];
+        const studyPlan = content.study_plan || [];
+        const nextActions = content.next_actions || [];
+        const qualityNotes = content.quality_notes || [];
+
+        let html = '<div style="padding:0 16px 20px;">' +
+            '<div class="card">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">' +
+            '<div><div style="font-size:16px;font-weight:800;color:#1e293b;">' + (content.title || 'AI错题诊断报告') + '</div>' +
+            '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">诊断报告 #' + diagnosisNo(report) + ' · ' + diagnosisTime(report) + ' · ' + diagnosisCountText(report) + '</div></div>' +
+            '</div>' +
+            '<div style="font-size:14px;color:#475569;line-height:1.8;background:#f8fafc;border-radius:10px;padding:12px;margin-bottom:14px;">' + (content.summary || '已生成诊断。') + '</div>';
+
+        html += '<button id="weakPracticeEntry-' + report.id + '" onclick="openWeakPracticeEntry(' + report.id + ')" style="width:100%;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:13px 14px;border:none;border-radius:10px;background:#0f766e;color:white;font-size:15px;font-weight:800;cursor:pointer;margin-bottom:16px;">' +
+            '<span>AI薄弱新题</span><span style="font-size:13px;font-weight:700;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:6px;">¥9.9</span></button>';
+
+        html += '<div style="font-size:14px;font-weight:800;color:#334155;margin-bottom:8px;">薄弱知识点 Top</div>';
+        if (weakPoints.length) {
+            weakPoints.forEach(function(item) {
+                html += '<div style="border:1px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:10px;background:#fff;">' +
+                    '<div style="display:flex;justify-content:space-between;gap:8px;align-items:center;">' +
+                    '<div style="font-size:14px;font-weight:700;color:#1e293b;">' + item.knowledge + '</div>' + riskBadge(item.risk_level) + '</div>' +
+                    '<div style="font-size:12px;color:#ef4444;margin-top:6px;">错题次数：' + (item.error_count === null || item.error_count === undefined ? '需复核' : item.error_count) + '</div>' +
+                    '<div style="font-size:13px;color:#64748b;line-height:1.7;margin-top:6px;">' + item.reason + '</div>' +
+                    '</div>';
+            });
+        } else {
+            html += '<div style="font-size:13px;color:#94a3b8;margin-bottom:12px;">暂无明确薄弱点。</div>';
+        }
+
+        html += '<div style="font-size:14px;font-weight:800;color:#334155;margin:14px 0 8px;">错误类型</div>';
+        if (errorTypes.length) {
+            html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+            errorTypes.forEach(function(item) {
+                html += '<div style="background:#fff7ed;border-left:3px solid #f97316;border-radius:8px;padding:10px;">' +
+                    '<div style="font-size:13px;font-weight:700;color:#9a3412;">' + item.label + '</div>' +
+                    '<div style="font-size:12px;color:#64748b;line-height:1.6;margin-top:4px;">' + item.description + '</div></div>';
+            });
+            html += '</div>';
+        }
+
+        html += '<div style="font-size:14px;font-weight:800;color:#334155;margin:14px 0 8px;">复习动作</div>';
+        html += '<ol style="margin:0;padding-left:20px;color:#475569;font-size:13px;line-height:1.8;">';
+        (studyPlan.length ? studyPlan : ['先复习高频错题知识点，再做同类题巩固。']).forEach(function(item) {
+            html += '<li>' + item + '</li>';
+        });
+        html += '</ol>';
+
+        html += '<div style="font-size:14px;font-weight:800;color:#334155;margin:14px 0 8px;">下一步</div>';
+        html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+        (nextActions.length ? nextActions : ['回到错题集，优先处理高风险知识点。']).forEach(function(item) {
+            html += '<div style="background:#eef2ff;color:#4338ca;border-radius:10px;padding:10px;font-size:13px;line-height:1.6;">' + item + '</div>';
+        });
+        html += '</div>';
+
+        if (qualityNotes.length) {
+            html += '<div style="font-size:14px;font-weight:800;color:#334155;margin:14px 0 8px;">质量说明</div>';
+            html += '<div style="background:#f8fafc;color:#64748b;border-radius:10px;padding:10px;font-size:12px;line-height:1.7;">';
+            qualityNotes.forEach(function(item) {
+                html += '<div>· ' + item + '</div>';
+            });
+            html += '</div>';
+        }
+
+        html += '</div></div>';
+        return html;
+    }
+
+    window.renderDiagnosisPage = renderDiagnosisPage;
+
+    window.generateDiagnosis = async function() {
+        if (WRONG_QUESTIONS.length === 0) {
+            showToast('暂无错题，先做几道题再诊断');
+            return;
+        }
+        const el = document.getElementById('diagnosisContent');
+        el.innerHTML = '<div class="card" style="text-align:center;padding:44px;margin:0 16px;"><div style="font-size:36px;margin-bottom:12px;">&#x1F9E0;</div><div style="font-size:16px;font-weight:700;color:#475569;">AI正在诊断错题...</div><div id="diagnosisJobTip" style="font-size:13px;color:#94a3b8;margin-top:8px;">已提交诊断任务，正在分析薄弱知识点、错误类型和复习路径</div></div>';
+        try {
+            const res = await api('/ai/diagnosis', { method: 'POST' });
+            if (res.job_id) {
+                await pollDiagnosisJob(res.job_id);
+            } else {
+                addDiagnosisReport(res);
+            }
+        } catch (e) {
+            el.innerHTML = '<div class="card" style="text-align:center;padding:44px;margin:0 16px;"><div style="font-size:16px;font-weight:700;color:#ef4444;">诊断失败</div><div style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.7;">' + e.message + '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;"><button onclick="generateDiagnosis()" style="padding:10px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;">重试生成</button><button onclick="renderDiagnosisPage()" style="padding:10px;border-radius:10px;border:none;background:#f1f5f9;color:#64748b;font-weight:700;">返回</button></div></div>';
+        }
+    };
+
+    function addDiagnosisReport(report) {
+        AI_DIAGNOSIS_REPORTS.unshift(report);
+        AI_DIAGNOSIS_REPORTS.sort(function(a, b) {
+            return (diagnosisNo(b) || 0) - (diagnosisNo(a) || 0);
+        });
+        AppState.set('aiDiagnosisReports', AI_DIAGNOSIS_REPORTS);
+        showToast('诊断完成！');
+        showDiagnosisHistory(0);
+    }
+
+    async function pollDiagnosisJob(jobId) {
+        const el = document.getElementById('diagnosisContent');
+        const startedAt = Date.now();
+        for (let i = 0; i < 80; i++) {
+            await new Promise(function(resolve) { setTimeout(resolve, 3000); });
+            const job = await api('/ai/diagnosis/jobs/' + jobId);
+            const seconds = Math.round((Date.now() - startedAt) / 1000);
+            const tip = document.getElementById('diagnosisJobTip');
+            if (tip) tip.textContent = '诊断任务运行中，已等待 ' + seconds + ' 秒。页面不会因网关超时中断。';
+            if (job.status === 'completed' && job.report) {
+                await loadUserData();
+                addDiagnosisReport(job.report);
+                return;
+            }
+            if (job.status === 'failed') {
+                throw new Error(job.error || 'AI诊断任务失败');
+            }
+        }
+        el.innerHTML = '<div class="card" style="text-align:center;padding:44px;margin:0 16px;"><div style="font-size:16px;font-weight:700;color:#ef4444;">诊断超时</div><div style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.7;">任务仍未完成，请稍后返回 AI诊断错题 页面查看最新报告。</div><button onclick="renderDiagnosisPage()" style="margin-top:16px;padding:10px 24px;border-radius:10px;border:none;background:#6366f1;color:white;font-weight:700;">返回</button></div>';
+    }
+
+    window.showDiagnosisHistory = function(idx) {
+        const report = AI_DIAGNOSIS_REPORTS[idx];
+        if (!report) return;
+        const el = document.getElementById('diagnosisContent');
+        el.innerHTML = '<div style="padding:0 16px 12px;"><button onclick="renderDiagnosisPage()" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回诊断列表</button></div>' + renderDiagnosisReport(report);
+        refreshWeakPracticeEntry(report.id);
+    };
+
+    window.showDiagnosisById = function(reportId) {
+        const index = AI_DIAGNOSIS_REPORTS.findIndex(function(report) { return Number(report.id) === Number(reportId); });
+        if (index >= 0) {
+            showDiagnosisHistory(index);
+        } else {
+            renderDiagnosisPage();
+        }
+    };
+
+    window.openWeakPracticeEntry = async function(reportId) {
+        try {
+            const res = await api('/ai/diagnosis/' + reportId + '/weak-practice');
+            if (res.practice && ['ready', 'completed'].includes(res.practice.status)) {
+                showWeakPractice(res.practice);
+                return;
+            }
+            if (res.job && ['pending', 'running'].includes(res.job.status)) {
+                showWeakPracticeLoading(reportId);
+                await pollWeakPracticeJob(res.job.id, reportId);
+                return;
+            }
+            openWeakPracticePurchase(reportId, res.practice && res.practice.status === 'failed');
+        } catch (e) {
+            showToast('读取AI薄弱新题失败：' + e.message);
+        }
+    };
+
+    async function refreshWeakPracticeEntry(reportId) {
+        const button = document.getElementById('weakPracticeEntry-' + reportId);
+        if (!button) return;
+        try {
+            const res = await api('/ai/diagnosis/' + reportId + '/weak-practice');
+            if (res.practice && ['ready', 'completed'].includes(res.practice.status)) {
+                button.innerHTML = '<span>AI薄弱新题</span><span style="font-size:13px;font-weight:800;background:rgba(255,255,255,.18);padding:3px 8px;border-radius:6px;">点击进入</span>';
+            }
+        } catch (e) {
+            // Keep the purchase entry available when the status lookup fails.
+        }
+    }
+
+    function openWeakPracticePurchase(reportId, retry) {
+        showModal(
+            '<div>' +
+            '<div style="font-size:19px;font-weight:800;color:#1e293b;margin-bottom:8px;">AI薄弱新题</div>' +
+            '<div style="font-size:14px;color:#475569;line-height:1.7;">围绕本份错题诊断中的每个薄弱知识点，实时生成 3 道新题，生成后可直接作答并查看解析。</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;background:#f0fdfa;border-radius:8px;padding:12px;margin:16px 0;color:#0f766e;"><span style="font-size:14px;font-weight:700;">模拟支付</span><span style="font-size:22px;font-weight:800;">¥9.9</span></div>' +
+            '<div style="font-size:12px;color:#94a3b8;line-height:1.6;margin-bottom:16px;">每份诊断报告仅可生成 1 次；每道题仅可作答 1 次。' + (retry ? '上次生成未完成，本次可重新发起。' : '') + '</div>' +
+            '<div style="display:flex;gap:10px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#64748b;font-weight:700;">取消</button>' +
+            '<button onclick="startWeakPractice(' + Number(reportId) + ')" style="flex:1;padding:11px;border-radius:8px;border:none;background:#0f766e;color:white;font-weight:800;">确认支付并生成</button>' +
+            '</div></div>'
+        );
+    }
+
+    window.startWeakPractice = async function(reportId) {
+        closeModal();
+        showWeakPracticeLoading(reportId);
+        try {
+            const res = await api('/ai/diagnosis/' + reportId + '/weak-practice', { method: 'POST' });
+            if (res.practice) {
+                showWeakPractice(res.practice);
+                return;
+            }
+            await pollWeakPracticeJob(res.job_id, reportId);
+        } catch (e) {
+            showWeakPracticeFailure(reportId, e.message);
+        }
+    };
+
+    function showWeakPracticeLoading(reportId) {
+        const el = document.getElementById('diagnosisContent');
+        el.innerHTML = '<div style="padding:0 16px 12px;"><button onclick="showDiagnosisById(' + Number(reportId) + ')" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回诊断报告</button></div>' +
+            '<div class="card" style="text-align:center;padding:44px;margin:0 16px;"><div style="font-size:36px;margin-bottom:12px;">&#x2728;</div><div style="font-size:16px;font-weight:800;color:#0f766e;">AI正在生成薄弱新题...</div><div id="weakPracticeJobTip" style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.7;">正在围绕本份诊断的每个薄弱知识点生成 3 道新题</div></div>';
+    }
+
+    function showWeakPracticeFailure(reportId, message) {
+        const el = document.getElementById('diagnosisContent');
+        el.innerHTML = '<div style="padding:0 16px 12px;"><button onclick="showDiagnosisById(' + Number(reportId) + ')" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回诊断报告</button></div>' +
+            '<div class="card" style="text-align:center;padding:44px;margin:0 16px;"><div style="font-size:16px;font-weight:800;color:#ef4444;">AI薄弱新题生成失败</div><div style="font-size:13px;color:#94a3b8;margin-top:8px;line-height:1.7;">' + escapeHtml(message || '请稍后重试') + '</div><button onclick="openWeakPracticeEntry(' + Number(reportId) + ')" style="margin-top:16px;padding:10px 24px;border-radius:8px;border:none;background:#0f766e;color:white;font-weight:700;">返回并重新发起</button></div>';
+    }
+
+    async function pollWeakPracticeJob(jobId, reportId) {
+        const startedAt = Date.now();
+        for (let i = 0; i < 100; i++) {
+            await new Promise(function(resolve) { setTimeout(resolve, 3000); });
+            const job = await api('/ai/weak-practice/jobs/' + jobId);
+            const tip = document.getElementById('weakPracticeJobTip');
+            if (tip) tip.textContent = 'AI正在生成薄弱新题，已等待 ' + Math.round((Date.now() - startedAt) / 1000) + ' 秒。';
+            if (job.status === 'completed' && job.practice) {
+                showWeakPractice(job.practice);
+                return;
+            }
+            if (job.status === 'failed') {
+                throw new Error(job.error || 'AI薄弱新题任务失败');
+            }
+        }
+        showWeakPracticeFailure(reportId, '任务仍在生成中，请返回诊断报告后再次进入查看。');
+    }
+
+    function showWeakPractice(practice) {
+        const el = document.getElementById('diagnosisContent');
+        const content = practice.content || {};
+        const answerMap = {};
+        (practice.answers || []).forEach(function(answer) {
+            answerMap[Number(answer.question_index)] = answer;
+        });
+        let questionNumber = 0;
+        let html = '<div style="padding:0 16px 12px;"><button onclick="showDiagnosisById(' + Number(practice.diagnosis_report_id) + ')" style="padding:8px 14px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;font-size:14px;color:#64748b;">&larr; 返回诊断报告</button></div>' +
+            '<div style="padding:0 16px 24px;"><div class="card">' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;"><div><div style="font-size:18px;font-weight:800;color:#134e4a;">' + escapeHtml(practice.title || 'AI薄弱新题') + '</div><div style="font-size:12px;color:#94a3b8;margin-top:4px;">模拟支付 ¥9.9 · ' + Number(practice.answered_count || 0) + ' / ' + Number(practice.question_total || 0) + ' 已作答</div></div><span style="padding:4px 8px;border-radius:6px;background:#f0fdfa;color:#0f766e;font-size:12px;font-weight:700;">每题仅 1 次</span></div>' +
+            '<div style="font-size:13px;color:#475569;line-height:1.7;background:#f0fdfa;border-radius:8px;padding:10px;">' + escapeHtml(practice.intro || '完成本组练习后，查看每题即时解析。') + '</div></div>';
+
+        (content.knowledge_sets || []).forEach(function(set) {
+            html += '<div style="font-size:14px;font-weight:800;color:#334155;margin:16px 0 8px;">' + escapeHtml(set.knowledge) + '</div>';
+            (set.questions || []).forEach(function(question) {
+                const index = questionNumber++;
+                const answer = answerMap[index];
+                html += '<div class="card" style="margin-bottom:12px;">' +
+                    '<div style="font-size:12px;font-weight:700;color:#0f766e;margin-bottom:7px;">第 ' + (index + 1) + ' 题</div>' +
+                    '<div style="font-size:15px;font-weight:700;color:#1e293b;line-height:1.7;margin-bottom:12px;">' + escapeHtml(question.stem) + '</div>' +
+                    '<div style="display:flex;flex-direction:column;gap:8px;">';
+                ['A', 'B', 'C', 'D'].forEach(function(letter) {
+                    const isSelected = answer && answer.selected === letter;
+                    const isCorrect = answer && question.answer === letter;
+                    let style = 'border:1px solid #e2e8f0;background:white;color:#334155;';
+                    if (answer && isCorrect) style = 'border:1px solid #86efac;background:#f0fdf4;color:#166534;';
+                    else if (answer && isSelected) style = 'border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;';
+                    html += '<button ' + (answer ? 'disabled' : 'onclick="answerWeakPractice(' + Number(practice.id) + ',' + index + ',\'' + letter + '\')"') + ' style="text-align:left;padding:10px 11px;border-radius:8px;font:inherit;cursor:' + (answer ? 'default' : 'pointer') + ';' + style + '">' +
+                        '<span style="font-weight:800;margin-right:6px;">' + letter + '.</span>' + escapeHtml((question.options || {})[letter] || '') + '</button>';
+                });
+                html += '</div>';
+                if (answer) {
+                    html += '<div style="margin-top:12px;padding:10px;border-radius:8px;background:' + (Number(answer.is_correct) === 1 ? '#f0fdf4' : '#fff7ed') + ';font-size:13px;line-height:1.7;color:#475569;">' +
+                        '<div style="font-weight:800;color:' + (Number(answer.is_correct) === 1 ? '#15803d' : '#c2410c') + ';">' + (Number(answer.is_correct) === 1 ? '回答正确' : '回答错误，正确答案：' + escapeHtml(question.answer)) + '</div>' +
+                        '<div style="margin-top:4px;">' + escapeHtml(question.analysis) + '</div></div>';
+                }
+                html += '</div>';
+            });
+        });
+        html += '</div>';
+        el.innerHTML = html;
+    }
+
+    window.answerWeakPractice = async function(practiceId, questionIndex, selected) {
+        try {
+            const res = await api('/ai/weak-practice/' + practiceId + '/answers', {
+                method: 'POST',
+                body: { questionIndex: questionIndex, selected: selected }
+            });
+            showWeakPractice(res.practice);
+        } catch (e) {
+            showToast(e.message);
+        }
+    };
+
+    window.openDiagnosisFeedback = function(reportId, rating) {
+        if (rating === 'usable') {
+            submitDiagnosisFeedback(reportId, rating, '');
+            return;
+        }
+        const title = rating === 'needs_fix' ? '这份诊断需要怎样修改？' : '这份诊断为什么不可用？';
+        showModal(
+            '<div>' +
+            '<div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:8px;">' + title + '</div>' +
+            '<div style="font-size:13px;color:#64748b;line-height:1.7;margin-bottom:12px;">请填写具体问题，这会写入 AI badcase 记录。</div>' +
+            '<textarea id="diagnosisFeedbackNote" placeholder="例如：薄弱知识点与我的错题不一致" style="width:100%;min-height:104px;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit;line-height:1.6;resize:vertical;"></textarea>' +
+            '<div style="display:flex;gap:10px;margin-top:16px;">' +
+            '<button onclick="closeModal()" style="flex:1;padding:11px;border-radius:8px;border:1px solid #e2e8f0;background:white;color:#64748b;font-weight:700;">取消</button>' +
+            '<button onclick="confirmDiagnosisFeedback(' + reportId + ',\'' + rating + '\')" style="flex:1;padding:11px;border-radius:8px;border:none;background:#2563eb;color:white;font-weight:700;">提交</button>' +
+            '</div></div>'
+        );
+    };
+
+    window.confirmDiagnosisFeedback = function(reportId, rating) {
+        const input = document.getElementById('diagnosisFeedbackNote');
+        const userNote = input ? input.value.trim() : '';
+        if (!userNote) {
+            showToast('请填写文字说明');
+            return;
+        }
+        closeModal();
+        submitDiagnosisFeedback(reportId, rating, userNote);
+    };
+
+    window.submitDiagnosisFeedback = async function(reportId, rating, userNote) {
+        try {
+            await api('/ai/badcases', {
+                method: 'POST',
+                body: {
+                    targetType: 'diagnosis',
+                    targetId: reportId,
+                    rating: rating,
+                    userNote: userNote || ''
+                }
+            });
+            showToast('反馈已记录');
+            if (document.getElementById('badcasePage') && document.getElementById('badcasePage').style.display === 'block') {
+                loadBadcases();
+            }
+        } catch (e) {
+            showToast('反馈失败：' + e.message);
+        }
+    };
+
+    function badcaseLabel(value, type) {
+        const maps = {
+            source: { user_feedback: '用户反馈', system_failure: '系统自动' },
+            target_type: { diagnosis: 'AI诊断错题', extract_wrong: 'AI提炼错题', extract_all: 'AI提炼全集' },
+            rating: { usable: '可用', needs_fix: '需修改', unusable: '不可用', system_failure: '系统失败' },
+            severity: { high: '高', medium: '中', low: '低' },
+            status: { unprocessed: '未处理', processed: '已处理' }
+        };
+        return (maps[type] && maps[type][value]) || value || '--';
+    }
+
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderBadcaseTable(rows) {
+        const el = document.getElementById('badcaseContent');
+        if (!rows.length) {
+            el.innerHTML = '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:14px;">暂无 badcase 记录</div>';
+            return;
+        }
+        let html = '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">' +
+            '<table style="min-width:1020px;width:100%;border-collapse:collapse;font-size:12px;">' +
+            '<thead><tr style="background:#f8fafc;color:#64748b;text-align:left;">' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">编号</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">时间</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">用户</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">来源</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">场景</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">反馈</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">严重度</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">用户说明</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">状态</th>' +
+            '<th style="padding:10px;border-bottom:1px solid #e2e8f0;">操作</th>' +
+            '</tr></thead><tbody>';
+        rows.forEach(function(row) {
+            const nextStatus = row.status === 'processed' ? 'unprocessed' : 'processed';
+            const statusButton = row.status === 'processed' ? '未处理' : '已处理';
+            html += '<tr>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;font-weight:700;color:#1e293b;">' + row.badcase_id + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;color:#64748b;">' + (row.created_at_shanghai || formatDateTime(row.created_at)) + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + (escapeHtml(row.username) || '--') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + badcaseLabel(row.source, 'source') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + badcaseLabel(row.target_type, 'target_type') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + badcaseLabel(row.rating, 'rating') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + badcaseLabel(row.severity, 'severity') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;min-width:220px;color:#475569;line-height:1.5;white-space:normal;">' + (escapeHtml(row.user_note) || '--') + '</td>' +
+                '<td style="padding:10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;">' + badcaseLabel(row.status, 'status') + '</td>' +
+                '<td style="padding:8px 10px;border-bottom:1px solid #f1f5f9;white-space:nowrap;"><div style="display:flex;gap:6px;"><button onclick="updateBadcaseStatus(' + Number(row.id) + ',\'' + nextStatus + '\')" style="padding:6px 8px;border:1px solid #bfdbfe;border-radius:6px;background:#eff6ff;color:#1d4ed8;font-size:12px;font-weight:700;">' + statusButton + '</button><button onclick="deleteBadcase(' + Number(row.id) + ')" style="padding:6px 8px;border:1px solid #fecaca;border-radius:6px;background:#fef2f2;color:#dc2626;font-size:12px;font-weight:700;">删除</button></div></td>' +
+                '</tr>';
+        });
+        html += '</tbody></table></div>';
+        el.innerHTML = html;
+    }
+
+    window.updateBadcaseStatus = async function(id, status) {
+        try {
+            await api('/ai/badcases/' + id, { method: 'PATCH', body: { status: status } });
+            await loadBadcases();
+            showToast('状态已更新');
+        } catch (e) {
+            showToast('更新失败：' + e.message);
+        }
+    };
+
+    window.deleteBadcase = async function(id) {
+        if (!window.confirm('确认删除这条 badcase 记录吗？')) return;
+        try {
+            await api('/ai/badcases/' + id, { method: 'DELETE' });
+            await loadBadcases();
+            showToast('已删除');
+        } catch (e) {
+            showToast('删除失败：' + e.message);
+        }
+    };
+
+    window.loadBadcases = async function() {
+        const el = document.getElementById('badcaseContent');
+        el.innerHTML = '<div style="padding:32px;text-align:center;color:#94a3b8;font-size:14px;">正在读取 badcase...</div>';
+        try {
+            const res = await api('/ai/badcases');
+            renderBadcaseTable(res.badcases || []);
+        } catch (e) {
+            el.innerHTML = '<div style="padding:32px;text-align:center;color:#ef4444;font-size:14px;">读取失败：' + e.message + '</div>';
+        }
+    };
+
+    window.showBadcasePage = function() {
+        if (!isAdminUser()) {
+            showToast('仅 admin 账号可查看 AI badcase 记录');
+            return;
+        }
+        document.getElementById('badcasePage').style.display = 'block';
+        loadBadcases();
+    };
+
+    window.closeBadcasePage = function() {
+        document.getElementById('badcasePage').style.display = 'none';
+    };
+
     // ===== Profile =====
+    function isAdminUser() {
+        return CURRENT_USER && CURRENT_USER.username === 'admin';
+    }
+
     function updateProfile() {
         const user = CURRENT_USER;
         if (!user) return;
@@ -1426,7 +1993,7 @@
             rewardListSection.style.display = 'block';
             let rewardHtml = '';
             rewards.forEach(function(rw) {
-                const typeMap = { 'wrong_collection': '错题集免费', 'knowledge_all': '提炼全集免费', 'ai_extract': '提炼错题+1次' };
+                const typeMap = { 'wrong_collection': '错题集免费', 'knowledge_all': 'AI提炼全集免费', 'ai_extract': 'AI提炼错题+1次' };
                 rewardHtml += '<div style="padding:12px 16px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">' +
                   '<div><div style="font-size:14px;font-weight:600;color:#22c55e;">' + (typeMap[rw.type] || rw.type) + '</div>' +
                   '<div style="font-size:12px;color:#94a3b8;margin-top:4px;">来源: ' + rw.source + '</div></div>' +

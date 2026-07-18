@@ -27,6 +27,8 @@ router.post('/', auth, async (req, res) => {
     } else {
       await db.run('INSERT INTO wrong_questions (user_id, question_id, count) VALUES (?, ?, 1)', req.userId, questionId);
     }
+  } else {
+    await db.run('DELETE FROM wrong_questions WHERE user_id = ? AND question_id = ?', req.userId, questionId);
   }
 
   const stats = await db.get(
